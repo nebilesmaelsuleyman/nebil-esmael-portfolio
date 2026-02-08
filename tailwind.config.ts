@@ -19,20 +19,19 @@ export default {
   				'serif'
   			],
   			sans: [
-  				'Work Sans',
+  				'Roboto',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
   				'BlinkMacSystemFont',
   				'Segoe UI',
-  				'Roboto',
   				'Helvetica Neue',
   				'Arial',
   				'Noto Sans',
   				'sans-serif'
   			],
   			serif: [
-  				'Lora',
+  				'Libre Caslon Text',
   				'ui-serif',
   				'Georgia',
   				'Cambria',
@@ -41,7 +40,7 @@ export default {
   				'serif'
   			],
   			mono: [
-  				'Inconsolata',
+  				'Roboto Mono',
   				'ui-monospace',
   				'SFMono-Regular',
   				'Menlo',
