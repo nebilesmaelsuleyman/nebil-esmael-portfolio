@@ -171,33 +171,37 @@ export const ProjectsSection = () => {
     if (!container || !panelsContainer) return;
 
     const panels = gsap.utils.toArray<HTMLElement>('.project-panel', panelsContainer);
-    if (panels.length === 0) return;
+    if (panels.length <= 1) return;
 
-    // Pin the container and scroll horizontally (vertically-feeling)
     const totalScroll = (panels.length - 1) * window.innerHeight;
 
-    gsap.to(panelsContainer, {
+    // Set the container height explicitly so there's no empty space
+    gsap.set(container, { height: totalScroll + window.innerHeight });
+
+    const tl = gsap.to(panelsContainer, {
       y: -totalScroll,
       ease: 'none',
       scrollTrigger: {
         trigger: container,
         start: 'top top',
-        end: `+=${totalScroll}`,
+        end: () => `+=${totalScroll}`,
         pin: true,
-        scrub: 1,
+        scrub: 0.8,
         anticipatePin: 1,
+        invalidateOnRefresh: true,
       },
     });
 
     return () => {
-      ScrollTrigger.getAll().forEach((st) => st.kill());
+      tl.scrollTrigger?.kill();
+      tl.kill();
     };
   }, []);
 
   return (
     <section id="projects" ref={containerRef} className="relative overflow-hidden">
-      {/* Section header */}
       <div ref={panelsContainerRef}>
+        {/* Section header */}
         <div className="project-panel h-screen flex items-center justify-center">
           <div className="container mx-auto px-6 lg:px-12 text-center">
             <span className="gsap-card-el text-primary text-sm font-medium tracking-wider uppercase block">
