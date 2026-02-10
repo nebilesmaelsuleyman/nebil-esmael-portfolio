@@ -25,7 +25,7 @@ export const FloatingBubbles = () => {
 
       // Start visible immediately
       gsap.set(bubble, {
-        opacity: 0.08 + Math.random() * 0.12,
+        opacity: 0.15 + Math.random() * 0.15,
         x: Math.random() * 100 - 50,
         y: Math.random() * 40 - 20,
       });
@@ -41,7 +41,7 @@ export const FloatingBubbles = () => {
           ease: 'sine.inOut',
         }),
         gsap.to(bubble, {
-          opacity: 0.15 + Math.random() * 0.2,
+          opacity: 0.25 + Math.random() * 0.25,
           duration: 3 + Math.random() * 4,
           delay: delay + 1,
           repeat: -1,
@@ -61,7 +61,7 @@ export const FloatingBubbles = () => {
       {codingWords.map((word, i) => (
         <div
           key={i}
-          className="code-bubble absolute text-primary/30 text-xs font-mono select-none"
+          className="code-bubble absolute text-primary text-xs font-mono select-none"
           style={{
             top: `${8 + (i * 3.2) % 85}%`,
             left: `${5 + (i * 7.3) % 90}%`,
