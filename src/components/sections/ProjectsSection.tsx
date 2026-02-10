@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 import { ExternalLink, Github } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -49,56 +49,29 @@ const defaultProjects: Project[] = [
   },
 ];
 
-const ProjectSlide = ({ project, index }: { project: Project; index: number }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!cardRef.current) return;
-    const els = cardRef.current.querySelectorAll('.gsap-card-el');
-
-    gsap.fromTo(
-      els,
-      { opacity: 0, y: 60 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        stagger: 0.12,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: cardRef.current,
-          start: 'top 80%',
-          toggleActions: 'play none none reverse',
-        },
-      }
-    );
-  }, []);
-
+const ProjectCard = ({ project, index }: { project: Project; index: number }) => {
   return (
-    <div
-      ref={cardRef}
-      className="project-panel h-screen w-full flex items-center justify-center relative"
-    >
+    <div className={`absolute inset-0 flex items-center justify-center project-slide`}>
       <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient}`} />
 
       <div className="container mx-auto px-6 lg:px-12 relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-center">
           {/* Content */}
           <div className={`space-y-8 ${index % 2 === 1 ? 'lg:order-2' : ''}`}>
-            <span className="gsap-card-el text-8xl font-display font-bold text-border/50 block">
+            <span className="text-8xl font-display font-bold text-border/50 block">
               {String(index + 1).padStart(2, '0')}
             </span>
 
             <div className="space-y-6 -mt-12">
-              <h3 className="gsap-card-el text-4xl md:text-5xl font-display font-semibold text-foreground">
+              <h3 className="text-4xl md:text-5xl font-display font-semibold text-foreground">
                 {project.title}
               </h3>
 
-              <p className="gsap-card-el text-lg text-muted-foreground leading-relaxed">
+              <p className="text-lg text-muted-foreground leading-relaxed">
                 {project.description}
               </p>
 
-              <div className="gsap-card-el flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 {project.techStack.map((tech) => (
                   <span key={tech} className="tech-badge">
                     {tech}
@@ -106,7 +79,7 @@ const ProjectSlide = ({ project, index }: { project: Project; index: number }) =
                 ))}
               </div>
 
-              <div className="gsap-card-el flex items-center gap-4 pt-4">
+              <div className="flex items-center gap-4 pt-4">
                 {project.liveUrl && (
                   <a
                     href={project.liveUrl}
@@ -134,7 +107,7 @@ const ProjectSlide = ({ project, index }: { project: Project; index: number }) =
           </div>
 
           {/* Visual */}
-          <div className={`gsap-card-el ${index % 2 === 1 ? 'lg:order-1' : ''}`}>
+          <div className={`${index % 2 === 1 ? 'lg:order-1' : ''}`}>
             <div className="relative aspect-[4/3] rounded-lg overflow-hidden glass-card">
               {project.imageUrl ? (
                 <img
@@ -162,34 +135,52 @@ const ProjectSlide = ({ project, index }: { project: Project; index: number }) =
 };
 
 export const ProjectsSection = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const panelsContainerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const slidesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    const panelsContainer = panelsContainerRef.current;
-    if (!container || !panelsContainer) return;
+    const section = sectionRef.current;
+    const container = slidesContainerRef.current;
+    if (!section || !container) return;
 
-    const panels = gsap.utils.toArray<HTMLElement>('.project-panel', panelsContainer);
-    if (panels.length <= 1) return;
+    const slides = gsap.utils.toArray<HTMLElement>('.project-slide', container);
+    if (slides.length === 0) return;
 
-    const totalScroll = (panels.length - 1) * window.innerHeight;
+    // Stack all slides on top of each other, only first visible
+    slides.forEach((slide, i) => {
+      gsap.set(slide, {
+        opacity: i === 0 ? 1 : 0,
+        y: i === 0 ? 0 : 60,
+      });
+    });
 
-    // Set the container height explicitly so there's no empty space
-    gsap.set(container, { height: totalScroll + window.innerHeight });
-
-    const tl = gsap.to(panelsContainer, {
-      y: -totalScroll,
-      ease: 'none',
+    // Create a timeline that crossfades between slides in place
+    const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: container,
+        trigger: section,
         start: 'top top',
-        end: () => `+=${totalScroll}`,
+        // Each slide gets 1 viewport height of scroll distance
+        end: () => `+=${slides.length * 100}%`,
         pin: true,
-        scrub: 0.8,
+        scrub: 0.5,
         anticipatePin: 1,
-        invalidateOnRefresh: true,
       },
+    });
+
+    // For each slide transition, fade out current and fade in next
+    slides.forEach((slide, i) => {
+      if (i < slides.length - 1) {
+        const next = slides[i + 1];
+        tl.to(slide, { opacity: 0, y: -60, duration: 1, ease: 'power2.inOut' })
+          .fromTo(
+            next,
+            { opacity: 0, y: 60 },
+            { opacity: 1, y: 0, duration: 1, ease: 'power2.inOut' },
+            '<0.3'
+          )
+          // Add a pause/hold for each slide so user can read it
+          .to({}, { duration: 0.5 });
+      }
     });
 
     return () => {
@@ -199,26 +190,30 @@ export const ProjectsSection = () => {
   }, []);
 
   return (
-    <section id="projects" ref={containerRef} className="relative overflow-hidden">
-      <div ref={panelsContainerRef}>
-        {/* Section header */}
-        <div className="project-panel h-screen flex items-center justify-center">
-          <div className="container mx-auto px-6 lg:px-12 text-center">
-            <span className="gsap-card-el text-primary text-sm font-medium tracking-wider uppercase block">
-              Selected Work
-            </span>
-            <h2 className="gsap-card-el section-title text-foreground mt-4">
-              Featured <span className="text-gradient">Projects</span>
-            </h2>
-            <p className="gsap-card-el section-subtitle mt-6 max-w-2xl mx-auto">
-              A curated collection of projects that showcase my expertise in building scalable,
-              performant, and beautiful web applications.
-            </p>
-          </div>
+    <section id="projects" ref={sectionRef} className="relative">
+      {/* Header */}
+      <div className="h-screen flex items-center justify-center">
+        <div className="container mx-auto px-6 lg:px-12 text-center">
+          <span className="text-primary text-sm font-medium tracking-wider uppercase block">
+            Selected Work
+          </span>
+          <h2 className="section-title text-foreground mt-4">
+            Featured <span className="text-gradient">Projects</span>
+          </h2>
+          <p className="section-subtitle mt-6 max-w-2xl mx-auto">
+            A curated collection of projects that showcase my expertise in building scalable,
+            performant, and beautiful web applications.
+          </p>
         </div>
+      </div>
 
+      {/* Pinned slides area */}
+      <div
+        ref={slidesContainerRef}
+        className="relative h-screen w-full bg-background"
+      >
         {defaultProjects.map((project, index) => (
-          <ProjectSlide key={project.id} project={project} index={index} />
+          <ProjectCard key={project.id} project={project} index={index} />
         ))}
       </div>
     </section>
