@@ -5,7 +5,7 @@ import { ComputerModel } from './ComputerModel';
 
 export const Scene3D = () => {
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="w-full h-full">
       <Canvas>
         <Suspense fallback={null}>
           <PerspectiveCamera makeDefault position={[0, 1, 5]} fov={40} />

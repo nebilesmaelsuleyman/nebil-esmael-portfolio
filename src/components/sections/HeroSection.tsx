@@ -43,11 +43,6 @@ export const HeroSection = () => {
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-hero" />
       
-      {/* 3D Scene */}
-      <div className="absolute right-0 top-0 w-full lg:w-1/2 h-full opacity-60 lg:opacity-100">
-        <Scene3D />
-      </div>
-
       {/* Subtle grid overlay */}
       <div 
         className="absolute inset-0 opacity-[0.02]"
@@ -58,12 +53,12 @@ export const HeroSection = () => {
         }}
       />
 
-      <div className="container mx-auto px-6 lg:px-12 relative z-10">
+      <div className="container mx-auto px-6 lg:px-12 relative z-10 flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="max-w-3xl"
+          className="max-w-3xl lg:flex-1"
         >
           {/* Badge */}
           <motion.div variants={itemVariants} className="mb-6">
@@ -136,6 +131,16 @@ export const HeroSection = () => {
               <Mail size={22} />
             </a>
           </motion.div>
+        </motion.div>
+
+        {/* 3D Scene */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5, duration: 1 }}
+          className="w-full lg:flex-1 h-[350px] md:h-[450px] lg:h-[500px] relative"
+        >
+          <Scene3D />
         </motion.div>
       </div>
 
