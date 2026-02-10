@@ -191,27 +191,23 @@ export const ProjectsSection = () => {
 
   return (
     <section id="projects" ref={sectionRef} className="relative">
-      {/* Header */}
-      <div className="h-screen flex items-center justify-center">
-        <div className="container mx-auto px-6 lg:px-12 text-center">
-          <span className="text-primary text-sm font-medium tracking-wider uppercase block">
-            Selected Work
-          </span>
-          <h2 className="section-title text-foreground mt-4">
-            Featured <span className="text-gradient">Projects</span>
-          </h2>
-          <p className="section-subtitle mt-6 max-w-2xl mx-auto">
-            A curated collection of projects that showcase my expertise in building scalable,
-            performant, and beautiful web applications.
-          </p>
-        </div>
-      </div>
-
-      {/* Pinned slides area */}
+      {/* Pinned slides area with header overlay */}
       <div
         ref={slidesContainerRef}
         className="relative h-screen w-full bg-background"
       >
+        {/* Header - positioned on top of first slide */}
+        <div className="absolute inset-0 flex items-start justify-center z-20 pointer-events-none pt-16">
+          <div className="container mx-auto px-6 lg:px-12 text-center">
+            <span className="text-primary text-sm font-medium tracking-wider uppercase block">
+              Selected Work
+            </span>
+            <h2 className="section-title text-foreground mt-4">
+              Featured <span className="text-gradient">Projects</span>
+            </h2>
+          </div>
+        </div>
+
         {defaultProjects.map((project, index) => (
           <ProjectCard key={project.id} project={project} index={index} />
         ))}
