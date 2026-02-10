@@ -8,19 +8,22 @@ export const Scene3D = () => {
     <div className="absolute inset-0 pointer-events-none">
       <Canvas>
         <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[0, 0.5, 6]} fov={45} />
+          <PerspectiveCamera makeDefault position={[0, 1, 5]} fov={40} />
 
           {/* Ambient lighting */}
-          <ambientLight intensity={0.2} />
+          <ambientLight intensity={0.6} />
 
           {/* Key light */}
-          <directionalLight position={[5, 5, 5]} intensity={0.8} color="#3b82f6" />
+          <directionalLight position={[5, 5, 5]} intensity={1.2} color="#ffffff" castShadow />
 
           {/* Fill light */}
-          <directionalLight position={[-5, -3, -5]} intensity={0.4} color="#10b981" />
+          <directionalLight position={[-3, 2, -3]} intensity={0.5} color="#3b82f6" />
 
           {/* Rim light */}
-          <pointLight position={[0, 5, -5]} intensity={0.6} color="#ffffff" />
+          <pointLight position={[0, 5, -5]} intensity={0.8} color="#10b981" />
+
+          {/* Bottom fill */}
+          <pointLight position={[0, -2, 3]} intensity={0.3} color="#ffffff" />
 
           <ComputerModel />
         </Suspense>
