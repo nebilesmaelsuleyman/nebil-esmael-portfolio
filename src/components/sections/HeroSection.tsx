@@ -42,9 +42,9 @@ export const HeroSection = () => {
     <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-hero" />
-      
+
       {/* Subtle grid overlay */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.02]"
         style={{
           backgroundImage: `linear-gradient(hsl(var(--primary) / 0.3) 1px, transparent 1px),
@@ -64,13 +64,13 @@ export const HeroSection = () => {
           <motion.div variants={itemVariants} className="mb-6">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/5 text-primary text-sm font-medium">
               <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-              Available for new projects
+              Available for Job
             </span>
           </motion.div>
 
           {/* Name */}
           <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl lg:text-8xl font-display font-semibold text-foreground mb-4">
-            Alex Mitchell
+            Nebil Esmael
           </motion.h1>
 
           {/* Title */}
@@ -80,9 +80,9 @@ export const HeroSection = () => {
 
           {/* Headline */}
           <motion.p variants={itemVariants} className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl">
-            I architect and build high-performance web applications with a focus on 
-            <span className="text-foreground"> clean code</span>, 
-            <span className="text-foreground"> scalable systems</span>, and 
+            I architect and build high-performance web applications with a focus on
+            <span className="text-foreground"> clean code</span>,
+            <span className="text-foreground"> scalable systems</span>, and
             <span className="text-foreground"> exceptional user experiences</span>.
           </motion.p>
 
@@ -109,7 +109,7 @@ export const HeroSection = () => {
           {/* Social Links */}
           <motion.div variants={itemVariants} className="flex items-center gap-6">
             <a
-              href="https://github.com"
+              href="https://github.com/nebilesmaelsuleyman"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors duration-300"
@@ -117,7 +117,7 @@ export const HeroSection = () => {
               <Github size={22} />
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/in/nebil-esmael-85846b2b8/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors duration-300"
@@ -125,7 +125,7 @@ export const HeroSection = () => {
               <Linkedin size={22} />
             </a>
             <a
-              href="mailto:hello@example.com"
+              href="mailto:nebilesmaelsuleyman@gmail.com"
               className="text-muted-foreground hover:text-primary transition-colors duration-300"
             >
               <Mail size={22} />

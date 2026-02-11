@@ -3,11 +3,11 @@ import gsap from 'gsap';
 
 const codingWords = [
   'git push 🚀', '// TODO: fix later', 'npm install', 'console.log("why?")',
-  'undefined is not a function', 'sudo rm -rf /', '!important', 'merge conflict 😱',
-  'Stack Overflow', 'it works on my machine', ';', 'async/await ⏳',
-  '404', 'Hello World', 'null pointer', 'chmod 777', 'const > let',
-  '//FIXME', '¯\\_(ツ)_/¯', 'works™', 'yarn why', 'git blame',
-  '<div> soup', 'refactor later', 'ship it! 🚢', 'bug → feature',
+  'Linux', 'sudo rm -rf /', '!important', 'woohoo it works', 'Nextjs',
+  'ChatGpt', 'it works on my machine', ';', 'async/await ⏳', 'Tailwind',
+  ' 404', '200 success', 'Hello World', 'React', 'i wil finish later', 'nestjs',
+  '//FIXME', '¯\\_(ツ)_/¯', 'works™', 'yarn why', 'npm install exelence',
+  'ExpressJs', 'refactor later', 'ship it! 🚢', 'bug → feature',
 ];
 
 export const FloatingBubbles = () => {

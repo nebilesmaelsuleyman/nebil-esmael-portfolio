@@ -1,16 +1,17 @@
 import { useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import developerPhoto from '@/assets/developer-photo.jpg';
+import developerPhoto from '@/assets/insuit3.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const skills = {
-  frontend: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion'],
-  backend: ['Node.js', 'Express.js', 'REST APIs', 'GraphQL', 'Authentication'],
+  frontend: ['React', 'Next.js', 'TypeScript', 'Tailwind CSS',],
+  backend: ['Node.js', 'Express.js', 'Eliysiajs', , 'Nestjs'],
   database: ['PostgreSQL', 'MongoDB', 'Redis', 'Prisma'],
-  tools: ['Git', 'GitHub', 'Docker', 'CI/CD', 'AWS', 'Vercel'],
+  tools: ['Git', 'GitHub', 'Docker', 'CI/CD', , 'Vercel'],
 };
+
 
 export const AboutSection = () => {
   const photoRef = useRef<HTMLDivElement>(null);
@@ -68,7 +69,7 @@ export const AboutSection = () => {
               <div className="relative h-full rounded-lg overflow-hidden glass-card">
                 <img
                   src={developerPhoto}
-                  alt="Alex Mitchell - Full-Stack Developer"
+                  alt="Nebil Esmael - Full-Stack Developer"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
@@ -91,18 +92,18 @@ export const AboutSection = () => {
 
             <div className="gsap-about-el space-y-4 text-muted-foreground leading-relaxed">
               <p>
-                With over 8 years of experience in full-stack development, I specialize in building 
-                high-performance web applications that scale. My approach combines technical excellence 
-                with a deep understanding of user experience and business objectives.
+                With over 3 years of experience in full-stack development, I specialize in building high-performance web applications that scale. My approach combines technical excellence with a deep understanding of user experience,
+                backend architecture,
+                and business objectives.
               </p>
               <p>
-                I architect systems with clean, maintainable code at their core — focusing on 
-                performance optimization, security best practices, and scalable infrastructure. 
-                Every project I undertake is built to last and designed to grow.
+                I architect systems with clean,
+                maintainable code at their core — focusing on performance optimization,
+                security best practices, and scalable infrastructure. Every project I undertake is designed to be robust, future-proof,
+                and easy to evolve as needs grow.
               </p>
               <p>
-                From startups to enterprise solutions, I've helped organizations transform their 
-                digital presence through robust, elegant software solutions.
+                From startups to complex SaaS and real-time applications, I've helped organizations transform their digital presence through elegant, reliable software solutions. My work spans frontend innovations with Next.js, backend systems in NestJS, AI/ML integration, and full-stack automation pipelines.
               </p>
             </div>
 
