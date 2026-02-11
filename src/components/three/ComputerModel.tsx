@@ -97,7 +97,7 @@ const CodeLine = ({ tokens, y, animOffset }: { tokens: { text: number; color: st
   }, [tokens]);
 
   return (
-    <group position={[0, y, 0.048]}>
+    <group position={[0, y, 0.046]}>
       {elements.map((el) => {
         if (!el) return null;
         return (
@@ -138,7 +138,7 @@ const Cursor = () => {
   });
 
   return (
-    <mesh ref={meshRef} position={[-0.85, 0.4, 0.049]}>
+    <mesh ref={meshRef} position={[-0.85, 0.4, 0.047]}>
       <planeGeometry args={[0.012, 0.045]} />
       <meshBasicMaterial ref={matRef} color="#d4d4d4" transparent opacity={0.9} depthWrite={false} />
     </mesh>
@@ -153,12 +153,12 @@ const Monitor = () => {
         <meshStandardMaterial color="#1a1a2e" metalness={0.8} roughness={0.2} />
       </RoundedBox>
       {/* Screen background - dark like VS Code */}
-      <mesh position={[0, 0.02, 0.042]}>
+      <mesh position={[0, 0.02, 0.043]}>
         <planeGeometry args={[2.15, 1.25]} />
         <meshBasicMaterial color="#1e1e2e" />
       </mesh>
       {/* Animated code lines rendered on top of screen */}
-      <group position={[0, 0.02, 0]}>
+      <group position={[0, 0.02, 0.001]}>
         {codeLines.map((tokens, i) => (
           <CodeLine key={i} tokens={tokens} y={0.4 - i * 0.09} animOffset={i} />
         ))}
@@ -294,7 +294,7 @@ export const ComputerModel = () => {
 
   return (
     <Float speed={1.2} rotationIntensity={0.05} floatIntensity={0.3}>
-      <group ref={groupRef} position={[0, -0.5, 0]} scale={1.3}>
+      <group ref={groupRef} position={[0, -0.2, 0]} scale={1.3}>
         <Monitor />
         <Keyboard />
         <Mouse />
