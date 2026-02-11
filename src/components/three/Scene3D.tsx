@@ -8,22 +8,22 @@ export const Scene3D = () => {
     <div className="w-full h-full">
       <Canvas>
         <Suspense fallback={null}>
-          <PerspectiveCamera makeDefault position={[0, 1, 5]} fov={40} />
+          <PerspectiveCamera makeDefault position={[0, 1.5, 4.5]} fov={38} />
 
-          {/* Ambient lighting */}
-          <ambientLight intensity={0.6} />
+          {/* Ambient */}
+          <ambientLight intensity={0.4} />
 
           {/* Key light */}
-          <directionalLight position={[5, 5, 5]} intensity={1.2} color="#ffffff" castShadow />
+          <directionalLight position={[3, 4, 5]} intensity={1} color="#ffffff" />
 
-          {/* Fill light */}
-          <directionalLight position={[-3, 2, -3]} intensity={0.5} color="#3b82f6" />
+          {/* Blue accent light */}
+          <pointLight position={[-3, 2, 1]} intensity={0.6} color="#3b82f6" />
 
-          {/* Rim light */}
-          <pointLight position={[0, 5, -5]} intensity={0.8} color="#10b981" />
+          {/* Green accent */}
+          <pointLight position={[2, 3, -2]} intensity={0.4} color="#10b981" />
 
-          {/* Bottom fill */}
-          <pointLight position={[0, -2, 3]} intensity={0.3} color="#ffffff" />
+          {/* Screen glow */}
+          <pointLight position={[0, 1.5, 1]} intensity={0.3} color="#3b82f6" distance={3} />
 
           <ComputerModel />
         </Suspense>
