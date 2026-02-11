@@ -65,44 +65,50 @@ const codeLines = [
 ];
 
 const CodeLine = ({ tokens, y, animOffset }: { tokens: { text: number; color: string }[]; y: number; animOffset: number }) => {
-  const meshRefs = useRef<(THREE.Mesh | null)[]>([]);
   const materialRefs = useRef<(THREE.MeshBasicMaterial | null)[]>([]);
 
   useFrame((state) => {
     const time = state.clock.elapsedTime;
+    // Simple cycling: each line appears one after another, then all fade and restart
+    const cycleDuration = 12;
+    const t = (time % cycleDuration);
+    const lineStart = animOffset * 0.8; // when this line starts appearing
+
     tokens.forEach((_, i) => {
       const mat = materialRefs.current[i];
       if (mat) {
-        // Each token fades in based on time, creating a typing effect
-        const tokenDelay = animOffset + i * 0.15;
-        const cycleTime = (time * 0.4 + tokenDelay) % 8; // 8 second cycle
-        const lineAppear = animOffset * 0.5;
-        const tokenAppear = lineAppear + i * 0.15;
-        const progress = Math.max(0, Math.min(1, (cycleTime - tokenAppear) * 3));
-        mat.opacity = progress * 0.85;
+        const tokenStart = lineStart + i * 0.12;
+        // fade in over 0.3s, stay visible, then fade out near cycle end
+        const fadeIn = Math.max(0, Math.min(1, (t - tokenStart) * 4));
+        const fadeOut = Math.max(0, Math.min(1, (cycleDuration - 1 - t) * 2));
+        mat.opacity = Math.min(fadeIn, fadeOut) * 0.95;
       }
     });
   });
 
-  let xOffset = -0.9;
+  const elements = useMemo(() => {
+    let xPos = -0.85;
+    return tokens.map((token, i) => {
+      if (token.text === 0) return null;
+      const x = xPos + token.text / 2;
+      xPos += token.text + 0.025;
+      return { x, token, i };
+    }).filter(Boolean);
+  }, [tokens]);
+
   return (
-    <group position={[0, y, 0.05]}>
-      {tokens.map((token, i) => {
-        if (token.text === 0) return null;
-        const x = xOffset + token.text / 2;
-        xOffset += token.text + 0.03;
+    <group position={[0, y, 0.048]}>
+      {elements.map((el) => {
+        if (!el) return null;
         return (
-          <mesh
-            key={i}
-            ref={(el) => { meshRefs.current[i] = el; }}
-            position={[x, 0, 0]}
-          >
-            <planeGeometry args={[token.text, 0.035]} />
+          <mesh key={el.i} position={[el.x, 0, 0]}>
+            <planeGeometry args={[el.token.text, 0.04]} />
             <meshBasicMaterial
-              ref={(el) => { materialRefs.current[i] = el; }}
-              color={token.color}
+              ref={(ref) => { materialRefs.current[el.i] = ref; }}
+              color={el.token.color}
               transparent
               opacity={0}
+              depthWrite={false}
             />
           </mesh>
         );
@@ -111,33 +117,30 @@ const CodeLine = ({ tokens, y, animOffset }: { tokens: { text: number; color: st
   );
 };
 
-// Blinking cursor
 const Cursor = () => {
   const matRef = useRef<THREE.MeshBasicMaterial>(null);
-
-  useFrame((state) => {
-    if (matRef.current) {
-      matRef.current.opacity = Math.sin(state.clock.elapsedTime * 4) > 0 ? 0.9 : 0;
-    }
-  });
-
-  // Cursor moves down lines over time
   const meshRef = useRef<THREE.Mesh>(null);
+
   useFrame((state) => {
+    const time = state.clock.elapsedTime;
+    if (matRef.current) {
+      matRef.current.opacity = Math.sin(time * 5) > 0 ? 0.95 : 0;
+    }
     if (meshRef.current) {
-      const cycle = (state.clock.elapsedTime * 0.4) % 8;
-      const lineIndex = Math.min(Math.floor(cycle * 1.8), codeLines.length - 1);
+      const cycleDuration = 12;
+      const t = time % cycleDuration;
+      const lineIndex = Math.min(Math.floor(t / 0.8), codeLines.length - 1);
       const line = codeLines[lineIndex];
-      const lineWidth = line.reduce((sum, t) => sum + t.text + 0.03, 0);
-      meshRef.current.position.x = -0.9 + lineWidth;
-      meshRef.current.position.y = 0.42 - lineIndex * 0.1;
+      const lineWidth = line ? line.reduce((sum, tok) => sum + tok.text + 0.025, 0) : 0;
+      meshRef.current.position.x = -0.85 + lineWidth;
+      meshRef.current.position.y = 0.4 - lineIndex * 0.09;
     }
   });
 
   return (
-    <mesh ref={meshRef} position={[-0.9, 0.42, 0.051]}>
-      <planeGeometry args={[0.015, 0.04]} />
-      <meshBasicMaterial ref={matRef} color="#d4d4d4" transparent opacity={0.9} />
+    <mesh ref={meshRef} position={[-0.85, 0.4, 0.049]}>
+      <planeGeometry args={[0.012, 0.045]} />
+      <meshBasicMaterial ref={matRef} color="#d4d4d4" transparent opacity={0.9} depthWrite={false} />
     </mesh>
   );
 };
@@ -149,21 +152,15 @@ const Monitor = () => {
       <RoundedBox args={[2.4, 1.5, 0.08]} radius={0.04} smoothness={4}>
         <meshStandardMaterial color="#1a1a2e" metalness={0.8} roughness={0.2} />
       </RoundedBox>
-      {/* Screen */}
-      <mesh position={[0, 0.02, 0.045]}>
+      {/* Screen background - dark like VS Code */}
+      <mesh position={[0, 0.02, 0.042]}>
         <planeGeometry args={[2.15, 1.25]} />
-        <meshStandardMaterial
-          color="#1e1e2e"
-          emissive="#3b82f6"
-          emissiveIntensity={0.08}
-          metalness={0.1}
-          roughness={0.3}
-        />
+        <meshBasicMaterial color="#1e1e2e" />
       </mesh>
-      {/* Animated code lines */}
+      {/* Animated code lines rendered on top of screen */}
       <group position={[0, 0.02, 0]}>
         {codeLines.map((tokens, i) => (
-          <CodeLine key={i} tokens={tokens} y={0.42 - i * 0.1} animOffset={i} />
+          <CodeLine key={i} tokens={tokens} y={0.4 - i * 0.09} animOffset={i} />
         ))}
         <Cursor />
       </group>
