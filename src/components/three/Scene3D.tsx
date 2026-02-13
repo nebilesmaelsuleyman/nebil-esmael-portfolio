@@ -32,8 +32,8 @@ export const Scene3D = () => {
             {/* Camera: slightly above eye-level, looking at desk */}
             <PerspectiveCamera
               makeDefault
-              position={[0, 1.5, 4.0]}
-              fov={40}
+              position={[0, 0, 3.8]}
+              fov={35}
             />
 
             {/* Lighting */}

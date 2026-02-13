@@ -37,6 +37,7 @@ const defaultProjects: Project[] = [
     liveUrl: 'https://example.com',
     githubUrl: 'https://github.com',
     gradient: 'from-emerald/20 via-transparent to-transparent',
+    imageUrl: 'https://res.cloudinary.com/ddu6q597d/image/upload/v1755233563/Screenshot_from_2026-02-13_17-52-35_lq1v7c.png'
   },
   {
     id: '3',
@@ -47,6 +48,7 @@ const defaultProjects: Project[] = [
     liveUrl: 'https://example.com',
     githubUrl: 'https://github.com',
     gradient: 'from-primary/20 via-transparent to-transparent',
+    imageUrl: 'https://res.cloudinary.com/ddu6q597d/image/upload/v1755233563/Screenshot_from_2026-02-13_17-52-35_lq1v7c.png'
   },
 ];
 

@@ -138,7 +138,7 @@ export const HeroSection = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.5, duration: 1 }}
-          className="w-full lg:flex-1 h-[350px] md:h-[450px] lg:h-[500px] relative"
+          className="w-full lg:flex-1 h-[400px] md:h-[500px] lg:h-[600px] relative"
         >
           <Scene3D />
         </motion.div>
