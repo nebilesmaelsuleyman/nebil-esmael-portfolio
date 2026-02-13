@@ -90,7 +90,7 @@ export const ContactSection = () => {
       setIsSuccess(true);
       setFormData({ name: '', email: '', message: '' });
       toast.success('Message sent successfully!');
-      
+
       // Reset success state after animation
       setTimeout(() => setIsSuccess(false), 3000);
     } catch (error) {
@@ -128,7 +128,7 @@ export const ContactSection = () => {
             </motion.h2>
 
             <motion.p variants={itemVariants} className="text-lg text-muted-foreground leading-relaxed max-w-lg">
-              Have a project in mind? I'm always open to discussing new opportunities, 
+              Have a project in mind? I'm always open to discussing new opportunities,
               creative ideas, or partnerships. Let's build something exceptional together.
             </motion.p>
 
@@ -139,8 +139,8 @@ export const ContactSection = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
-                  <a href="mailto:hello@alexmitchell.dev" className="text-foreground hover:text-primary transition-colors">
-                    hello@alexmitchell.dev
+                  <a href="mailto:nebilesmaelsuleyman@gmail.com" className="text-foreground hover:text-primary transition-colors">
+                    nebilesmaelsuleyman@gmail.com
                   </a>
                 </div>
               </div>
@@ -151,7 +151,7 @@ export const ContactSection = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Location</p>
-                  <p className="text-foreground">San Francisco, CA</p>
+                  <p className="text-foreground">Adama ,Ethiopia</p>
                 </div>
               </div>
             </motion.div>

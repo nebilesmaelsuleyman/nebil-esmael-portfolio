@@ -22,10 +22,11 @@ const defaultProjects: Project[] = [
     title: 'E-Commerce Platform',
     description:
       'A full-featured e-commerce solution with real-time inventory management, secure payment processing, and an intuitive admin dashboard. Built for scale with microservices architecture.',
-    techStack: ['Next.js', 'TypeScript', 'PostgreSQL', 'Stripe', 'Redis'],
-    liveUrl: 'https://example.com',
-    githubUrl: 'https://github.com',
+    techStack: ['Next.js', 'TypeScript', 'Mongodb', 'Stripe'],
+    liveUrl: 'https://scoothub-e-commerceweb.onrender.com/',
+    githubUrl: 'https://github.com/nebilesmaelsuleyman/ScootHub-E-commerceweb',
     gradient: 'from-sapphire/20 via-transparent to-transparent',
+    imageUrl: 'https://res.cloudinary.com/ddu6q597d/image/upload/v1755233563/Screenshot_from_2026-02-13_17-52-35_lq1v7c.png'
   },
   {
     id: '2',

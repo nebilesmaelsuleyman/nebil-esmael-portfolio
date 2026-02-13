@@ -16,7 +16,7 @@ export const Footer = () => {
             className="text-lg font-display font-semibold tracking-tight text-foreground"
           >
             <span className="text-primary">{'<'}</span>
-            AM
+            NE
             <span className="text-primary">{'/>'}</span>
           </motion.div>
 
@@ -29,7 +29,7 @@ export const Footer = () => {
             className="flex items-center gap-6"
           >
             <a
-              href="https://github.com"
+              href="https://github.com/nebilesmaelsuleyman"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors duration-300"
@@ -37,7 +37,7 @@ export const Footer = () => {
               <Github size={20} />
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/in/nebil-esmael-85846b2b8/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-colors duration-300"
@@ -45,7 +45,7 @@ export const Footer = () => {
               <Linkedin size={20} />
             </a>
             <a
-              href="mailto:hello@alexmitchell.dev"
+              href="mailto:nebilesmaelsuleyman@gmail.com"
               className="text-muted-foreground hover:text-primary transition-colors duration-300"
             >
               <Mail size={20} />
@@ -60,7 +60,7 @@ export const Footer = () => {
             transition={{ delay: 0.2 }}
             className="text-sm text-muted-foreground flex items-center gap-1"
           >
-            © {currentYear} Alex Mitchell. Made with <Heart size={14} className="text-destructive" /> 
+            © {currentYear} Nebil Esmael. Made with <Heart size={14} className="text-destructive" />
           </motion.p>
         </div>
       </div>

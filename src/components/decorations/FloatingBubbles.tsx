@@ -2,12 +2,12 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 
 const codingWords = [
-  'git push 🚀', '// TODO: fix later', 'npm install', 'console.log("why?")',
-  'Linux', 'sudo rm -rf /', '!important', 'woohoo it works', 'Nextjs',
-  'ChatGpt', 'it works on my machine', ';', 'async/await ⏳', 'Tailwind',
-  ' 404', '200 success', 'Hello World', 'React', 'i wil finish later', 'nestjs',
+  'git push 🚀', 'fix later', 'npm install', 'console.log(error)',
+  'Linux', 'sudo rm -rf /', 'woohoo it works', 'Nextjs',
+  'ChatGpt', ';', 'async/await ⏳', 'Tailwind',
+  ' 404', '200 success', 'Hello World', 'React', 'nestjs',
   '//FIXME', '¯\\_(ツ)_/¯', 'works™', 'yarn why', 'npm install exelence',
-  'ExpressJs', 'refactor later', 'ship it! 🚢', 'bug → feature',
+  'ExpresJs', 'refactor later', 'ship it! 🚢', 'bug', "built with passion"
 ];
 
 export const FloatingBubbles = () => {

@@ -50,11 +50,10 @@ export const Navigation = () => {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          isScrolled
-            ? 'bg-background/80 backdrop-blur-xl border-b border-border/50'
-            : 'bg-transparent'
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
+          ? 'bg-background/80 backdrop-blur-xl border-b border-border/50'
+          : 'bg-transparent'
+          }`}
       >
         <div className="container mx-auto px-6 lg:px-12">
           <div className="flex items-center justify-between h-20">
@@ -65,9 +64,7 @@ export const Navigation = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <span className="text-primary">{'<'}</span>
-              Portfolio
-              <span className="text-primary">{'/>'}</span>
+
             </motion.button>
 
             {/* Desktop Navigation */}
@@ -128,9 +125,8 @@ export const Navigation = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className={`text-left text-lg font-medium py-2 ${
-                      activeSection === item.id ? 'text-primary' : 'text-muted-foreground'
-                    }`}
+                    className={`text-left text-lg font-medium py-2 ${activeSection === item.id ? 'text-primary' : 'text-muted-foreground'
+                      }`}
                   >
                     {item.label}
                   </motion.button>
