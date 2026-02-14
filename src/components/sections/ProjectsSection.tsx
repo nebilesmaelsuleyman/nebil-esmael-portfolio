@@ -1,7 +1,12 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { ExternalLink, Github } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { supabase } from '@/integrations/supabase/client';
+
+import ecommerceImg from '../../assets/E-commerce.png';
+import personalLearningImg from '../../assets/personalLearning.png';
+import chatappImg from '../../assets/chatapp.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -26,30 +31,38 @@ const defaultProjects: Project[] = [
     liveUrl: 'https://scoothub-e-commerceweb.onrender.com/',
     githubUrl: 'https://github.com/nebilesmaelsuleyman/ScootHub-E-commerceweb',
     gradient: 'from-sapphire/20 via-transparent to-transparent',
-    imageUrl: 'https://res.cloudinary.com/ddu6q597d/image/upload/v1755233563/Screenshot_from_2026-02-13_17-52-35_lq1v7c.png'
+    imageUrl: ecommerceImg
   },
   {
     id: '2',
-    title: 'Analytics Dashboard',
+    title: 'sass personal Learning platform',
     description:
-      'Enterprise analytics platform processing millions of events daily. Features real-time data visualization, custom reporting, and predictive analytics powered by machine learning.',
-    techStack: ['React', 'Node.js', 'MongoDB', 'D3.js', 'TensorFlow'],
-    liveUrl: 'https://example.com',
-    githubUrl: 'https://github.com',
+      'A SaaS voice-AI platform using Clerk authentication and Vapi that lets users create custom topics and interact with an AI assistant through real-time voice',
+    techStack: ['Nextjs', 'clerk', 'supabase', 'vapi voice Agent',],
+    liveUrl: 'sass-personal-learning.vercel.app',
+    githubUrl: 'https://github.com/nebilesmaelsuleyman/sassPersonalLearning',
     gradient: 'from-emerald/20 via-transparent to-transparent',
-    imageUrl: 'https://res.cloudinary.com/ddu6q597d/image/upload/v1755233563/Screenshot_from_2026-02-13_17-52-35_lq1v7c.png'
+    imageUrl: personalLearningImg
   },
   {
     id: '3',
-    title: 'Collaboration Suite',
+    title: 'Chat App',
     description:
-      'Real-time collaboration platform enabling teams to work together seamlessly. Includes document editing, video conferencing, and project management capabilities.',
-    techStack: ['React', 'WebRTC', 'Socket.io', 'PostgreSQL', 'AWS'],
-    liveUrl: 'https://example.com',
-    githubUrl: 'https://github.com',
+      'Real-time messaging platform built with React and Express. Supports one-to-one and group chats, live message updates via WebSockets, user authentication, and message persistence. Designed for low-latency communication, scalable backend APIs, and a responsive client interface.',
+    techStack: ['React', 'Node.js', 'Socket.io', 'mongoDb', 'Vercel'],
+    liveUrl: 'https://chat-app-5mtn.onrender.com',
+    githubUrl: 'https://github.com/nebilesmaelsuleyman/chat-appm',
     gradient: 'from-primary/20 via-transparent to-transparent',
-    imageUrl: 'https://res.cloudinary.com/ddu6q597d/image/upload/v1755233563/Screenshot_from_2026-02-13_17-52-35_lq1v7c.png'
+    imageUrl: chatappImg
   },
+];
+
+const gradients = [
+  'from-sapphire/20 via-transparent to-transparent',
+  'from-emerald/20 via-transparent to-transparent',
+  'from-primary/20 via-transparent to-transparent',
+  'from-purple-500/20 via-transparent to-transparent',
+  'from-orange-500/20 via-transparent to-transparent'
 ];
 
 const ProjectCard = ({ project, index }: { project: Project; index: number }) => {
@@ -140,57 +153,123 @@ const ProjectCard = ({ project, index }: { project: Project; index: number }) =>
 export const ProjectsSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const slidesContainerRef = useRef<HTMLDivElement>(null);
+  const [projects, setProjects] = useState<Project[]>(defaultProjects);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch projects from Supabase
   useEffect(() => {
-    const section = sectionRef.current;
-    const container = slidesContainerRef.current;
-    if (!section || !container) return;
+    const fetchProjects = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('is_visible', true)
+          .order('display_order', { ascending: true });
 
-    const slides = gsap.utils.toArray<HTMLElement>('.project-slide', container);
-    if (slides.length === 0) return;
+        if (error) {
+          console.error('Error fetching projects:', error);
+          return;
+        }
 
-    // Stack all slides on top of each other, only first visible
-    slides.forEach((slide, i) => {
-      gsap.set(slide, {
-        opacity: i === 0 ? 1 : 0,
-        y: i === 0 ? 0 : 60,
-      });
-    });
-
-    // Create a timeline that crossfades between slides in place
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: 'top top',
-        // Each slide gets 1 viewport height of scroll distance
-        end: () => `+=${slides.length * 100}%`,
-        pin: true,
-        scrub: 0.5,
-        anticipatePin: 1,
-      },
-    });
-
-    // For each slide transition, fade out current and fade in next
-    slides.forEach((slide, i) => {
-      if (i < slides.length - 1) {
-        const next = slides[i + 1];
-        tl.to(slide, { opacity: 0, y: -60, duration: 1, ease: 'power2.inOut' })
-          .fromTo(
-            next,
-            { opacity: 0, y: 60 },
-            { opacity: 1, y: 0, duration: 1, ease: 'power2.inOut' },
-            '<0.3'
-          )
-          // Add a pause/hold for each slide so user can read it
-          .to({}, { duration: 0.5 });
+        if (data && data.length > 0) {
+          const mappedProjects: Project[] = data.map((p, index) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            techStack: p.tech_stack || [],
+            liveUrl: p.live_url || undefined,
+            githubUrl: p.github_url || undefined,
+            imageUrl: p.image_url || undefined,
+            // Assign gradients cyclically based on index
+            gradient: gradients[index % gradients.length]
+          }));
+          setProjects(mappedProjects);
+        }
+      } catch (err) {
+        console.error('Failed to fetch projects:', err);
+      } finally {
+        setLoading(false);
       }
-    });
+    };
+
+    fetchProjects();
+  }, []);
+
+  // GSAP Animation setup
+  useEffect(() => {
+    // Only run animation setup if we are not loading or if we fell back to default projects
+    const initGSAP = () => {
+      const section = sectionRef.current;
+      const container = slidesContainerRef.current;
+      if (!section || !container) return;
+
+      const slides = gsap.utils.toArray<HTMLElement>('.project-slide', container);
+      if (slides.length === 0) return;
+
+      // Reset any previous GSAP settings
+      ScrollTrigger.getAll().forEach(st => st.kill());
+
+      // Stack all slides on top of each other, only first visible
+      slides.forEach((slide, i) => {
+        gsap.set(slide, {
+          opacity: i === 0 ? 1 : 0,
+          y: i === 0 ? 0 : 60,
+        });
+      });
+
+      // Create a timeline that crossfades between slides in place
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: () => `+=${slides.length * 100}%`,
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1,
+          onUpdate: (self) => {
+            // Optional: for tracking
+          }
+        },
+      });
+
+      // For each slide transition, fade out current and fade in next
+      slides.forEach((slide, i) => {
+        if (i < slides.length - 1) {
+          const next = slides[i + 1];
+          tl.to(slide, { opacity: 0, y: -60, duration: 1, ease: 'power2.inOut' })
+            .fromTo(
+              next,
+              { opacity: 0, y: 60 },
+              { opacity: 1, y: 0, duration: 1, ease: 'power2.inOut' },
+              '<0.3'
+            )
+            .to({}, { duration: 0.5 });
+        }
+      });
+
+      // Force refresh after a small delay to ensure all layouts are calculated
+      ScrollTrigger.refresh();
+
+      return tl;
+    };
+
+    let timeline: gsap.core.Timeline | undefined;
+    const timer = setTimeout(() => {
+      timeline = initGSAP();
+    }, 500); // Increased delay for better stability
+
+    // Also refresh on window load and resize
+    window.addEventListener('load', () => ScrollTrigger.refresh());
+    window.addEventListener('resize', () => ScrollTrigger.refresh());
 
     return () => {
-      tl.scrollTrigger?.kill();
-      tl.kill();
+      clearTimeout(timer);
+      if (timeline) timeline.kill();
+      ScrollTrigger.getAll().forEach(st => st.kill());
+      window.removeEventListener('load', () => ScrollTrigger.refresh());
+      window.removeEventListener('resize', () => ScrollTrigger.refresh());
     };
-  }, []);
+  }, [projects, loading]); // Added loading to dependencies
 
   return (
     <section id="projects" ref={sectionRef} className="relative">
@@ -211,7 +290,7 @@ export const ProjectsSection = () => {
           </div>
         </div>
 
-        {defaultProjects.map((project, index) => (
+        {projects.map((project, index) => (
           <ProjectCard key={project.id} project={project} index={index} />
         ))}
       </div>

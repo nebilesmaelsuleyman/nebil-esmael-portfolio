@@ -32,7 +32,7 @@ export const Scene3D = () => {
             {/* Camera: slightly above eye-level, looking at desk */}
             <PerspectiveCamera
               makeDefault
-              position={[0, 0, 3.8]}
+              position={[0, 0, 5.0]}
               fov={35}
             />
 

@@ -230,15 +230,15 @@ export const ComputerModel = () => {
 
   useFrame(({ clock }) => {
     if (groupRef.current) {
-      // Gentle floating and looking at cursor effect
-      groupRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.3) * 0.04;
+      // Gentle floating, strictly front facing (no rotation)
+      // groupRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.3) * 0.04;
       groupRef.current.position.y = Math.sin(clock.elapsedTime * 0.5) * 0.02;
     }
   });
 
   return (
-    <Float speed={1.5} rotationIntensity={0.05} floatIntensity={0.1}>
-      <group ref={groupRef} position={[0, 0, 0]} scale={1.4}>
+    <Float speed={1.5} rotationIntensity={0} floatIntensity={0.1}>
+      <group ref={groupRef} position={[0, 0.2, 0]} scale={1.6}>
         <Monitor />
       </group>
     </Float>

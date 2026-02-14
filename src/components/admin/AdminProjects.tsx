@@ -34,15 +34,20 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     tech_stack: '',
     live_url: '',
     github_url: '',
+    image_url: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -75,7 +80,9 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
         tech_stack: project.tech_stack.join(', '),
         live_url: project.live_url || '',
         github_url: project.github_url || '',
+        image_url: project.image_url || '',
       });
+      setPreviewUrl(project.image_url);
     } else {
       setEditingProject(null);
       setFormData({
@@ -84,8 +91,11 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
         tech_stack: '',
         live_url: '',
         github_url: '',
+        image_url: '',
       });
+      setPreviewUrl(null);
     }
+    setFile(null);
     setErrors({});
     setIsModalOpen(true);
   };
@@ -93,6 +103,36 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingProject(null);
+    setFile(null);
+    setPreviewUrl(null);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setPreviewUrl(URL.createObjectURL(selectedFile));
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('portfolio-assets')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('portfolio-assets')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,7 +140,8 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
     setErrors({});
 
     const techStackArray = formData.tech_stack.split(',').map(t => t.trim()).filter(Boolean);
-    
+
+    // Pass image validation if file is selected or already exists
     const result = projectSchema.safeParse({
       ...formData,
       tech_stack: techStackArray,
@@ -120,12 +161,29 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
     setIsSaving(true);
 
     try {
+      let finalImageUrl = formData.image_url;
+
+      if (file) {
+        setIsUploading(true);
+        try {
+          finalImageUrl = await uploadImage(file);
+        } catch (uploadError) {
+          console.error('Upload error:', uploadError);
+          toast.error('Failed to upload image');
+          setIsSaving(false);
+          setIsUploading(false);
+          return;
+        }
+        setIsUploading(false);
+      }
+
       const projectData = {
         title: formData.title,
         description: formData.description,
         tech_stack: techStackArray,
         live_url: formData.live_url || null,
         github_url: formData.github_url || null,
+        image_url: finalImageUrl || null,
         user_id: userId,
       };
 
@@ -235,7 +293,13 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
                 <div className="text-muted-foreground cursor-grab">
                   <GripVertical size={20} />
                 </div>
-                
+
+                {project.image_url && (
+                  <div className="w-16 h-12 rounded overflow-hidden flex-shrink-0">
+                    <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-lg font-semibold text-foreground">{project.title}</h3>
@@ -325,6 +389,44 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
               </h3>
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Project Image</label>
+                  <div className="space-y-2">
+                    {previewUrl && (
+                      <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border">
+                        <img
+                          src={previewUrl}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFile(null);
+                            setPreviewUrl(null);
+                            setFormData(prev => ({ ...prev, image_url: '' }));
+                          }}
+                          className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="block w-full text-sm text-muted-foreground
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-primary file:text-primary-foreground
+                        hover:file:bg-primary/90"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">Title</label>
                   <input
@@ -393,12 +495,12 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
                   </button>
                   <motion.button
                     type="submit"
-                    disabled={isSaving}
+                    disabled={isSaving || isUploading}
                     className="flex-1 btn-accent rounded-md disabled:opacity-50"
                     whileHover={{ scale: isSaving ? 1 : 1.01 }}
                     whileTap={{ scale: isSaving ? 1 : 0.99 }}
                   >
-                    {isSaving ? 'Saving...' : editingProject ? 'Update' : 'Create'}
+                    {isUploading ? 'Uploading...' : isSaving ? 'Saving...' : editingProject ? 'Update' : 'Create'}
                   </motion.button>
                 </div>
               </form>

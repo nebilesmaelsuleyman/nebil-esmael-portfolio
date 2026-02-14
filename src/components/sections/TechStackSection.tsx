@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
 import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
 
 const techStack = [
   { name: 'React', icon: 'https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg' },
@@ -26,23 +24,34 @@ const LogoRow = ({ direction, speed }: { direction: 'left' | 'right'; speed: num
   useEffect(() => {
     if (!rowRef.current) return;
     const row = rowRef.current;
-    const totalWidth = row.scrollWidth / 2;
 
-    gsap.to(row, {
-      x: direction === 'left' ? -totalWidth : totalWidth,
-      duration: speed,
-      ease: 'none',
-      repeat: -1,
-      modifiers: {
-        x: gsap.utils.unitize((x: number) => {
-          const val = parseFloat(String(x));
-          if (direction === 'left') {
-            return val % totalWidth;
-          }
-          return (val % totalWidth) - totalWidth;
-        }),
-      },
-    });
+    const initAnimation = () => {
+      const totalWidth = row.scrollWidth / 2;
+      if (totalWidth <= 0 || isNaN(totalWidth)) return;
+
+      gsap.to(row, {
+        x: direction === 'left' ? -totalWidth : totalWidth,
+        duration: speed,
+        ease: 'none',
+        repeat: -1,
+        modifiers: {
+          x: gsap.utils.unitize((x: number) => {
+            const val = parseFloat(String(x));
+            if (direction === 'left') {
+              return val % totalWidth;
+            }
+            return (val % totalWidth) - totalWidth;
+          }),
+        },
+      });
+    };
+
+    const timeout = setTimeout(initAnimation, 500);
+    window.addEventListener('load', initAnimation);
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener('load', initAnimation);
+    };
   }, [direction, speed]);
 
   const items = [...techStack, ...techStack];
@@ -71,56 +80,65 @@ const LogoRow = ({ direction, speed }: { direction: 'left' | 'right'; speed: num
   );
 };
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
 export const TechStackSection = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!sectionRef.current) return;
-    const els = sectionRef.current.querySelectorAll('.gsap-tech-el');
-
-    gsap.fromTo(
-      els,
-      { opacity: 0, y: 40 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        stagger: 0.15,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: 'top 80%',
-          toggleActions: 'play none none reverse',
-        },
-      }
-    );
-  }, []);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
-    <section ref={sectionRef} className="py-24 lg:py-32 relative overflow-hidden">
-      {/* Background accents */}
-      <div className="absolute top-0 left-1/4 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-accent/5 rounded-full blur-3xl" />
+    <section id="tech-stack" className="py-24 lg:py-32 relative overflow-hidden flex flex-col justify-center min-h-[70vh]">
+      {/* Background accents - Exactly matching ContactSection style */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
 
       <div className="container mx-auto px-6 lg:px-12 relative z-10 mb-12">
-        <div className="text-center space-y-4">
-          <span className="gsap-tech-el text-primary text-sm font-medium tracking-wider uppercase block">
+        <motion.div
+          ref={ref}
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? 'visible' : 'hidden'}
+          className="text-center space-y-4"
+        >
+          <motion.span variants={itemVariants} className="text-primary text-sm font-medium tracking-wider uppercase block font-display">
             Tech Arsenal
-          </span>
-          <h2 className="gsap-tech-el section-title text-foreground">
+          </motion.span>
+          <motion.h2 variants={itemVariants} className="section-title text-foreground">
             Technologies I <span className="text-gradient">Master</span>
-          </h2>
-          <p className="gsap-tech-el section-subtitle max-w-2xl mx-auto">
+          </motion.h2>
+          <motion.p variants={itemVariants} className="section-subtitle max-w-2xl mx-auto text-lg text-muted-foreground">
             The tools and frameworks I use to bring ideas to life — battle-tested in production.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </div>
 
       {/* Infinite scrolling rows */}
-      <div className="space-y-2">
-        <LogoRow direction="left" speed={40} />
-        <LogoRow direction="right" speed={35} />
+      <div className="relative z-20 space-y-4">
+        <LogoRow direction="left" speed={60} />
+        <LogoRow direction="right" speed={50} />
       </div>
     </section>
   );
 };
+
