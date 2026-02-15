@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  FolderKanban, 
-  FileText, 
-  User, 
+import {
+  FolderKanban,
+  FileText,
+  User,
   MessageSquare,
   LogOut,
   Menu,
@@ -13,7 +12,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Session } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 import { AdminProjects } from '@/components/admin/AdminProjects';
 import { AdminProfile } from '@/components/admin/AdminProfile';
 import { AdminCV } from '@/components/admin/AdminCV';
@@ -36,35 +35,23 @@ const Admin = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setLoading(false);
-        
-        if (!session) {
-          navigate('/auth');
-        }
-      }
-    );
-
-    // THEN check for existing session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setLoading(false);
+      if (!session) navigate('/auth');
+    });
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
-      
-      if (!session) {
-        navigate('/auth');
-      }
+      if (!session) navigate('/auth');
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      toast.success('Logged out successfully');
+      toast.success('Logged out');
       navigate('/auth');
     } catch (error) {
       console.error('Logout error:', error);
@@ -83,6 +70,8 @@ const Admin = () => {
   if (!session) {
     return null;
   }
+
+  const userId = session.user.id;
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -144,9 +133,7 @@ const Admin = () => {
               <User className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
-                {session.user.email}
-              </p>
+              <p className="text-sm font-medium text-foreground truncate">{session.user.email}</p>
               <p className="text-xs text-muted-foreground">Admin</p>
             </div>
           </div>
@@ -177,9 +164,9 @@ const Admin = () => {
 
         {/* Content */}
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
-          {activeTab === 'projects' && <AdminProjects userId={session.user.id} />}
-          {activeTab === 'profile' && <AdminProfile userId={session.user.id} />}
-          {activeTab === 'cv' && <AdminCV userId={session.user.id} />}
+          {activeTab === 'projects' && <AdminProjects userId={userId} />}
+          {activeTab === 'profile' && <AdminProfile userId={userId} />}
+          {activeTab === 'cv' && <AdminCV userId={userId} />}
           {activeTab === 'messages' && <AdminMessages />}
         </main>
       </div>

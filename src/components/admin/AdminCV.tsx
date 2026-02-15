@@ -25,6 +25,12 @@ export const AdminCV = ({ userId }: AdminCVProps) => {
   }, [userId]);
 
   const fetchCV = async () => {
+    if (!userId) {
+      setLoading(false);
+      setCVFile(null);
+      return;
+    }
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('cv_files')

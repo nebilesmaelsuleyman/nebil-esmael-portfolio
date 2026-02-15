@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit2, Trash2, ExternalLink, Github, GripVertical, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +55,12 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
   }, [userId]);
 
   const fetchProjects = async () => {
+    if (!userId) {
+      setLoading(false);
+      setProjects([]);
+      return;
+    }
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -62,10 +69,11 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      setProjects(data || []);
-    } catch (error) {
-      console.error('Error fetching projects:', error);
-      toast.error('Failed to load projects');
+      setProjects(data ?? []);
+    } catch (err: unknown) {
+      const supabaseError = err && typeof err === 'object' && 'message' in err ? (err as { message: string }).message : null;
+      console.error('Error fetching projects:', err);
+      toast.error(supabaseError || 'Failed to load projects');
     } finally {
       setLoading(false);
     }
@@ -367,147 +375,153 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
         </div>
       )}
 
-      {/* Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-            onClick={closeModal}
-          >
+      {/* Modal - portaled to body so it's not clipped by parent overflow */}
+      {createPortal(
+        <AnimatePresence>
+          {isModalOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="glass-card p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-4 bg-black/50 overflow-y-auto"
+              onClick={closeModal}
             >
-              <h3 className="text-xl font-display font-semibold text-foreground mb-6">
-                {editingProject ? 'Edit Project' : 'Add Project'}
-              </h3>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Image Upload */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Project Image</label>
-                  <div className="space-y-2">
-                    {previewUrl && (
-                      <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border">
-                        <img
-                          src={previewUrl}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFile(null);
-                            setPreviewUrl(null);
-                            setFormData(prev => ({ ...prev, image_url: '' }));
-                          }}
-                          className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="block w-full text-sm text-muted-foreground
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                onClick={(e) => e.stopPropagation()}
+                className="glass-card w-full max-w-lg max-h-[85vh] min-h-0 flex flex-col rounded-lg shadow-xl overflow-hidden"
+              >
+                <div className="flex-shrink-0 px-8 pt-8 pb-4">
+                  <h3 className="text-xl font-display font-semibold text-foreground">
+                    {editingProject ? 'Edit Project' : 'Add Project'}
+                  </h3>
+                </div>
+                <div className="flex-1 min-h-0 overflow-y-auto px-8 pb-8" data-lenis-prevent>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Image Upload */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Project Image</label>
+                      <div className="space-y-2">
+                        {previewUrl && (
+                          <div className="relative w-full h-40 rounded-lg overflow-hidden border border-border">
+                            <img
+                              src={previewUrl}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFile(null);
+                                setPreviewUrl(null);
+                                setFormData(prev => ({ ...prev, image_url: '' }));
+                              }}
+                              className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="block w-full text-sm text-muted-foreground
                         file:mr-4 file:py-2 file:px-4
                         file:rounded-md file:border-0
                         file:text-sm file:font-semibold
                         file:bg-primary file:text-primary-foreground
                         hover:file:bg-primary/90"
-                    />
-                  </div>
-                </div>
+                        />
+                      </div>
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Title</label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    className={`input-luxury ${errors.title ? 'border-destructive' : ''}`}
-                    placeholder="Project title"
-                  />
-                  {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Title</label>
+                      <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                        className={`input-luxury ${errors.title ? 'border-destructive' : ''}`}
+                        placeholder="Project title"
+                      />
+                      {errors.title && <p className="text-sm text-destructive">{errors.title}</p>}
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Description</label>
-                  <textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    className={`input-luxury resize-none ${errors.description ? 'border-destructive' : ''}`}
-                    placeholder="Project description"
-                    rows={4}
-                  />
-                  {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Description</label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                        className={`input-luxury resize-none ${errors.description ? 'border-destructive' : ''}`}
+                        placeholder="Project description"
+                        rows={4}
+                      />
+                      {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Technologies</label>
-                  <input
-                    type="text"
-                    value={formData.tech_stack}
-                    onChange={(e) => setFormData(prev => ({ ...prev, tech_stack: e.target.value }))}
-                    className={`input-luxury ${errors.tech_stack ? 'border-destructive' : ''}`}
-                    placeholder="React, TypeScript, Node.js (comma-separated)"
-                  />
-                  {errors.tech_stack && <p className="text-sm text-destructive">{errors.tech_stack}</p>}
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Technologies</label>
+                      <input
+                        type="text"
+                        value={formData.tech_stack}
+                        onChange={(e) => setFormData(prev => ({ ...prev, tech_stack: e.target.value }))}
+                        className={`input-luxury ${errors.tech_stack ? 'border-destructive' : ''}`}
+                        placeholder="React, TypeScript, Node.js (comma-separated)"
+                      />
+                      {errors.tech_stack && <p className="text-sm text-destructive">{errors.tech_stack}</p>}
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Live URL</label>
-                  <input
-                    type="url"
-                    value={formData.live_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, live_url: e.target.value }))}
-                    className="input-luxury"
-                    placeholder="https://example.com"
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Live URL</label>
+                      <input
+                        type="url"
+                        value={formData.live_url}
+                        onChange={(e) => setFormData(prev => ({ ...prev, live_url: e.target.value }))}
+                        className="input-luxury"
+                        placeholder="https://example.com"
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">GitHub URL</label>
-                  <input
-                    type="url"
-                    value={formData.github_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, github_url: e.target.value }))}
-                    className="input-luxury"
-                    placeholder="https://github.com/..."
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">GitHub URL</label>
+                      <input
+                        type="url"
+                        value={formData.github_url}
+                        onChange={(e) => setFormData(prev => ({ ...prev, github_url: e.target.value }))}
+                        className="input-luxury"
+                        placeholder="https://github.com/..."
+                      />
+                    </div>
 
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="flex-1 py-3 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <motion.button
-                    type="submit"
-                    disabled={isSaving || isUploading}
-                    className="flex-1 btn-accent rounded-md disabled:opacity-50"
-                    whileHover={{ scale: isSaving ? 1 : 1.01 }}
-                    whileTap={{ scale: isSaving ? 1 : 0.99 }}
-                  >
-                    {isUploading ? 'Uploading...' : isSaving ? 'Saving...' : editingProject ? 'Update' : 'Create'}
-                  </motion.button>
+                    <div className="flex gap-4 pt-4">
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="flex-1 py-3 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <motion.button
+                        type="submit"
+                        disabled={isSaving || isUploading}
+                        className="flex-1 btn-accent rounded-md disabled:opacity-50"
+                        whileHover={{ scale: isSaving ? 1 : 1.01 }}
+                        whileTap={{ scale: isSaving ? 1 : 0.99 }}
+                      >
+                        {isUploading ? 'Uploading...' : isSaving ? 'Saving...' : editingProject ? 'Update' : 'Create'}
+                      </motion.button>
+                    </div>
+                  </form>
                 </div>
-              </form>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };

@@ -60,7 +60,7 @@ const Auth = () => {
         toast.success('Welcome back!');
         navigate('/admin');
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: result.data.email,
           password: result.data.password,
           options: {
@@ -68,7 +68,8 @@ const Auth = () => {
           },
         });
         if (error) throw error;
-        toast.success('Account created! Please check your email to verify.');
+        toast.success('Account created!');
+        if (data.session) navigate('/admin');
       }
     } catch (error: any) {
       console.error('Auth error:', error);

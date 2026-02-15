@@ -42,6 +42,12 @@ export const AdminProfile = ({ userId }: AdminProfileProps) => {
   }, [userId]);
 
   const fetchProfile = async () => {
+    if (!userId) {
+      setLoading(false);
+      setProfile(null);
+      return;
+    }
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
