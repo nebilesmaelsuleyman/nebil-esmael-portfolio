@@ -39,7 +39,7 @@ const defaultProjects: Project[] = [
     description:
       'A SaaS voice-AI platform using Clerk authentication and Vapi that lets users create custom topics and interact with an AI assistant through real-time voice',
     techStack: ['Nextjs', 'clerk', 'supabase', 'vapi voice Agent',],
-    liveUrl: 'sass-personal-learning.vercel.app',
+    liveUrl: 'https://sass-personal-learning.vercel.app/',
     githubUrl: 'https://github.com/nebilesmaelsuleyman/sassPersonalLearning',
     gradient: 'from-emerald/20 via-transparent to-transparent',
     imageUrl: personalLearningImg
@@ -212,8 +212,9 @@ export const ProjectsSection = () => {
       // Stack all slides on top of each other, only first visible
       slides.forEach((slide, i) => {
         gsap.set(slide, {
-          opacity: i === 0 ? 1 : 0,
+          autoAlpha: i === 0 ? 1 : 0,
           y: i === 0 ? 0 : 60,
+          zIndex: i === 0 ? 10 : 1,
         });
       });
 
@@ -236,11 +237,17 @@ export const ProjectsSection = () => {
       slides.forEach((slide, i) => {
         if (i < slides.length - 1) {
           const next = slides[i + 1];
-          tl.to(slide, { opacity: 0, y: -60, duration: 1, ease: 'power2.inOut' })
+          tl.to(slide, {
+            autoAlpha: 0,
+            y: -60,
+            zIndex: 1,
+            duration: 1,
+            ease: 'power2.inOut'
+          })
             .fromTo(
               next,
-              { opacity: 0, y: 60 },
-              { opacity: 1, y: 0, duration: 1, ease: 'power2.inOut' },
+              { autoAlpha: 0, y: 60, zIndex: 1 },
+              { autoAlpha: 1, y: 0, zIndex: 10, duration: 1, ease: 'power2.inOut' },
               '<0.3'
             )
             .to({}, { duration: 0.5 });
