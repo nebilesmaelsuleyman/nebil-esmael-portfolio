@@ -1,22 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   FolderKanban,
   FileText,
   User,
   MessageSquare,
-  LogOut,
   Menu,
-  X
+  X,
+  AlertTriangle
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import type { Session } from '@supabase/supabase-js';
 import { AdminProjects } from '@/components/admin/AdminProjects';
 import { AdminProfile } from '@/components/admin/AdminProfile';
 import { AdminCV } from '@/components/admin/AdminCV';
 import { AdminMessages } from '@/components/admin/AdminMessages';
+
+// ⚠️  DEV ONLY — auth bypassed for local testing
+const DEV_USER_ID = import.meta.env.VITE_ADMIN_USER_ID ?? 'dev-user';
 
 type AdminTab = 'projects' | 'profile' | 'cv' | 'messages';
 
@@ -28,50 +27,11 @@ const navItems: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
 ];
 
 const Admin = () => {
-  const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<AdminTab>('projects');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setLoading(false);
-      if (!session) navigate('/auth');
-    });
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-      if (!session) navigate('/auth');
-    });
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success('Logged out');
-      navigate('/auth');
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('Failed to log out');
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!session) {
-    return null;
-  }
-
-  const userId = session.user.id;
+  // Auth bypassed — using hardcoded dev userId
+  const userId = DEV_USER_ID;
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -84,11 +44,10 @@ const Admin = () => {
       )}
 
       {/* Sidebar */}
-      <motion.aside
-        initial={false}
-        animate={{ x: isSidebarOpen ? 0 : '-100%' }}
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex flex-col lg:translate-x-0 transition-transform duration-300`}
-        style={{ transform: typeof window !== 'undefined' && window.innerWidth >= 1024 ? 'none' : undefined }}
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
       >
         {/* Logo */}
         <div className="h-20 flex items-center justify-between px-6 border-b border-border">
@@ -129,23 +88,23 @@ const Admin = () => {
         {/* User section */}
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{session.user.email}</p>
-              <p className="text-xs text-muted-foreground">Admin</p>
+              <p className="text-sm font-medium text-foreground truncate">Dev Mode</p>
+              <p className="text-xs text-yellow-500">Auth bypassed</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 mt-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          <a
+            href="/auth"
+            className="w-full flex items-center gap-3 px-4 py-3 mt-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
           >
-            <LogOut size={20} />
-            Sign Out
-          </button>
+            <User size={20} />
+            Go to Login
+          </a>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen">

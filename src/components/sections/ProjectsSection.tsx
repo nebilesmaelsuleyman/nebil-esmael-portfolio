@@ -4,9 +4,6 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { supabase } from '@/integrations/supabase/client';
 
-import ecommerceImg from '../../assets/E-commerce.png';
-import personalLearningImg from '../../assets/personalLearning.png';
-import chatappImg from '../../assets/chatapp.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -21,41 +18,6 @@ interface Project {
   gradient: string;
 }
 
-const defaultProjects: Project[] = [
-  {
-    id: '1',
-    title: 'E-Commerce Platform',
-    description:
-      'A full-featured e-commerce solution with real-time inventory management, secure payment processing, and an intuitive admin dashboard. Built for scale with microservices architecture.',
-    techStack: ['Next.js', 'TypeScript', 'Mongodb', 'Stripe'],
-    liveUrl: 'https://scoothub-e-commerceweb.onrender.com/',
-    githubUrl: 'https://github.com/nebilesmaelsuleyman/ScootHub-E-commerceweb',
-    gradient: 'from-sapphire/20 via-transparent to-transparent',
-    imageUrl: ecommerceImg
-  },
-  {
-    id: '2',
-    title: 'sass personal Learning platform',
-    description:
-      'A SaaS voice-AI platform using Clerk authentication and Vapi that lets users create custom topics and interact with an AI assistant through real-time voice',
-    techStack: ['Nextjs', 'clerk', 'supabase', 'vapi voice Agent',],
-    liveUrl: 'https://sass-personal-learning.vercel.app/',
-    githubUrl: 'https://github.com/nebilesmaelsuleyman/sassPersonalLearning',
-    gradient: 'from-emerald/20 via-transparent to-transparent',
-    imageUrl: personalLearningImg
-  },
-  {
-    id: '3',
-    title: 'Chat App',
-    description:
-      'Real-time messaging platform built with React and Express. Supports one-to-one and group chats, live message updates via WebSockets, user authentication, and message persistence. Designed for low-latency communication, scalable backend APIs, and a responsive client interface.',
-    techStack: ['React', 'Node.js', 'Socket.io', 'mongoDb', 'Vercel'],
-    liveUrl: 'https://chat-app-5mtn.onrender.com',
-    githubUrl: 'https://github.com/nebilesmaelsuleyman/chat-appm',
-    gradient: 'from-primary/20 via-transparent to-transparent',
-    imageUrl: chatappImg
-  },
-];
 
 const gradients = [
   'from-sapphire/20 via-transparent to-transparent',
@@ -153,23 +115,16 @@ const ProjectCard = ({ project, index }: { project: Project; index: number }) =>
 export const ProjectsSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const slidesContainerRef = useRef<HTMLDivElement>(null);
-  const [projects, setProjects] = useState<Project[]>(defaultProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch projects from Supabase
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('is_visible', true)
-          .order('display_order', { ascending: true });
-
-        if (error) {
-          console.error('Error fetching projects:', error);
-          return;
-        }
+        const res = await fetch('http://localhost:5000/api/projects?is_visible=true');
+        if (!res.ok) throw new Error('Failed to fetch projects');
+        const data = await res.json();
 
         if (data && data.length > 0) {
           const mappedProjects: Project[] = data.map((p, index) => ({

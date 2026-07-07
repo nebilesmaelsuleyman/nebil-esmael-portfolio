@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Send, Download, Mail, MapPin, ArrowRight, CheckCircle } from 'lucide-react';
+import { Send, Download, Mail, MapPin, CheckCircle } from 'lucide-react';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -39,6 +39,7 @@ const itemVariants = {
 export const ContactSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const [cvUrl, setCvUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
@@ -47,6 +48,31 @@ export const ContactSection = () => {
   const [errors, setErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Fetch CV URL from Supabase on mount
+  useEffect(() => {
+    const fetchCV = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/cv');
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.file_url) setCvUrl(data.file_url);
+        }
+      } catch {
+        // CV fetch failure is non-critical
+      }
+    };
+    fetchCV();
+  }, []);
+
+  const handleDownloadCV = () => {
+    if (!cvUrl) {
+      toast.info('CV is not available yet. Check back soon!');
+      return;
+    }
+    window.open(cvUrl, '_blank', 'noopener,noreferrer');
+  };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -77,15 +103,17 @@ export const ContactSection = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .insert({
+      const res = await fetch('http://localhost:5000/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: result.data.name,
           email: result.data.email,
           message: result.data.message,
-        });
+        }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to send message');
 
       setIsSuccess(true);
       setFormData({ name: '', email: '', message: '' });
@@ -159,12 +187,14 @@ export const ContactSection = () => {
             {/* Download CV Button */}
             <motion.div variants={itemVariants}>
               <motion.button
+                onClick={handleDownloadCV}
                 className="btn-luxury rounded-md inline-flex items-center gap-2"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                title={cvUrl ? 'Download Nebil Esmael CV' : 'CV coming soon'}
               >
                 <Download size={18} />
-                Download CV
+                {cvUrl ? 'Download CV' : 'CV Coming Soon'}
               </motion.button>
             </motion.div>
           </motion.div>

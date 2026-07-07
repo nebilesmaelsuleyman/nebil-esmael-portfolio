@@ -49,13 +49,9 @@ export const AdminProfile = ({ userId }: AdminProfileProps) => {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error) throw error;
+      const res = await fetch(`http://localhost:5000/api/profiles/${userId}`);
+      if (!res.ok) throw new Error('Failed to fetch profile');
+      const data = await res.json();
 
       if (data) {
         setProfile(data);
@@ -101,18 +97,12 @@ export const AdminProfile = ({ userId }: AdminProfileProps) => {
         user_id: userId,
       };
 
-      if (profile) {
-        const { error } = await supabase
-          .from('profiles')
-          .update(profileData)
-          .eq('id', profile.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('profiles')
-          .insert(profileData);
-        if (error) throw error;
-      }
+      const res = await fetch('http://localhost:5000/api/profiles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData)
+      });
+      if (!res.ok) throw new Error('Failed to save profile');
 
       toast.success('Profile saved');
       fetchProfile();
@@ -142,22 +132,24 @@ export const AdminProfile = ({ userId }: AdminProfileProps) => {
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}/photo.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('portfolio-assets')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('portfolio-assets')
-        .getPublicUrl(fileName);
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadRes = await fetch('http://localhost:5000/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!uploadRes.ok) throw new Error('Failed to upload image');
+      const uploadData = await uploadRes.json();
+      const publicUrl = uploadData.url;
 
       if (profile) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ photo_url: publicUrl })
-          .eq('id', profile.id);
-        if (error) throw error;
+        const updateRes = await fetch('http://localhost:5000/api/profiles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, photo_url: publicUrl })
+        });
+        if (!updateRes.ok) throw new Error('Failed to update profile photo');
       }
 
       toast.success('Photo uploaded');

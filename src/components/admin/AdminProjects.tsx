@@ -22,8 +22,8 @@ const projectSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100),
   description: z.string().min(1, 'Description is required').max(2000),
   tech_stack: z.array(z.string()).min(1, 'Add at least one technology'),
-  live_url: z.string().url().optional().or(z.literal('')),
-  github_url: z.string().url().optional().or(z.literal('')),
+  live_url: z.string().optional().or(z.literal('')),
+  github_url: z.string().optional().or(z.literal('')),
 });
 
 interface AdminProjectsProps {
@@ -62,13 +62,9 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('user_id', userId)
-        .order('display_order', { ascending: true });
-
-      if (error) throw error;
+      const res = await fetch(`http://localhost:5000/api/projects/${userId}`);
+      if (!res.ok) throw new Error('Failed to load projects');
+      const data = await res.json();
       setProjects(data ?? []);
     } catch (err: unknown) {
       const supabaseError = err && typeof err === 'object' && 'message' in err ? (err as { message: string }).message : null;
@@ -124,23 +120,15 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${userId}/${Math.random()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('portfolio-assets')
-      .upload(filePath, file);
-
-    if (uploadError) {
-      throw uploadError;
-    }
-
-    const { data } = supabase.storage
-      .from('portfolio-assets')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadRes = await fetch('http://localhost:5000/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (!uploadRes.ok) throw new Error('Failed to upload image');
+      const uploadData = await uploadRes.json();
+      return uploadData.url;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -196,20 +184,20 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
       };
 
       if (editingProject) {
-        const { error } = await supabase
-          .from('projects')
-          .update(projectData)
-          .eq('id', editingProject.id);
-        if (error) throw error;
+        const updateRes = await fetch(`http://localhost:5000/api/projects/${editingProject.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(projectData)
+        });
+        if (!updateRes.ok) throw new Error('Failed to update project');
         toast.success('Project updated');
       } else {
-        const { error } = await supabase
-          .from('projects')
-          .insert({
-            ...projectData,
-            display_order: projects.length,
-          });
-        if (error) throw error;
+        const insertRes = await fetch('http://localhost:5000/api/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...projectData, display_order: projects.length })
+        });
+        if (!insertRes.ok) throw new Error('Failed to create project');
         toast.success('Project created');
       }
 
@@ -225,11 +213,12 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
 
   const toggleVisibility = async (project: Project) => {
     try {
-      const { error } = await supabase
-        .from('projects')
-        .update({ is_visible: !project.is_visible })
-        .eq('id', project.id);
-      if (error) throw error;
+      const res = await fetch(`http://localhost:5000/api/projects/${project.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_visible: !project.is_visible })
+      });
+      if (!res.ok) throw new Error('Failed to update visibility');
       fetchProjects();
       toast.success(project.is_visible ? 'Project hidden' : 'Project visible');
     } catch (error) {
@@ -242,11 +231,10 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
     if (!confirm('Are you sure you want to delete this project?')) return;
 
     try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
+      const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Failed to delete project');
       toast.success('Project deleted');
       fetchProjects();
     } catch (error) {

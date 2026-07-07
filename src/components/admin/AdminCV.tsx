@@ -32,14 +32,10 @@ export const AdminCV = ({ userId }: AdminCVProps) => {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('cv_files')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error) throw error;
-      setCVFile(data);
+      const res = await fetch(`http://localhost:5000/api/cv/${userId}`);
+      if (!res.ok) throw new Error('Failed to fetch CV');
+      const data = await res.json();
+      setCVFile(data || null);
     } catch (error) {
       console.error('Error fetching CV:', error);
       toast.error('Failed to load CV');
@@ -65,38 +61,26 @@ export const AdminCV = ({ userId }: AdminCVProps) => {
     setIsUploading(true);
 
     try {
-      const fileName = `${userId}/cv.pdf`;
+      const formData = new FormData();
+      formData.append('file', file);
+      const uploadRes = await fetch('http://localhost:5000/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      if (!uploadRes.ok) throw new Error('Failed to upload CV file');
+      const uploadData = await uploadRes.json();
+      const publicUrl = uploadData.url;
 
-      const { error: uploadError } = await supabase.storage
-        .from('portfolio-assets')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('portfolio-assets')
-        .getPublicUrl(fileName);
-
-      if (cvFile) {
-        const { error } = await supabase
-          .from('cv_files')
-          .update({
-            file_url: publicUrl,
-            file_name: file.name,
-            uploaded_at: new Date().toISOString(),
-          })
-          .eq('id', cvFile.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('cv_files')
-          .insert({
-            user_id: userId,
-            file_url: publicUrl,
-            file_name: file.name,
-          });
-        if (error) throw error;
-      }
+      const saveRes = await fetch('http://localhost:5000/api/cv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          file_url: publicUrl,
+          file_name: file.name,
+        })
+      });
+      if (!saveRes.ok) throw new Error('Failed to save CV info');
 
       toast.success('CV uploaded successfully');
       fetchCV();
@@ -113,18 +97,10 @@ export const AdminCV = ({ userId }: AdminCVProps) => {
     if (!confirm('Are you sure you want to delete your CV?')) return;
 
     try {
-      const { error: deleteStorageError } = await supabase.storage
-        .from('portfolio-assets')
-        .remove([`${userId}/cv.pdf`]);
-
-      if (deleteStorageError) console.error('Storage delete error:', deleteStorageError);
-
-      const { error } = await supabase
-        .from('cv_files')
-        .delete()
-        .eq('id', cvFile.id);
-
-      if (error) throw error;
+      const res = await fetch(`http://localhost:5000/api/cv/${cvFile.id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Failed to delete CV');
 
       toast.success('CV deleted');
       setCVFile(null);

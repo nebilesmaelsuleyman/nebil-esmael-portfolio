@@ -24,12 +24,9 @@ export const AdminMessages = () => {
 
   const fetchMessages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('contact_submissions')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const res = await fetch('http://localhost:5000/api/messages');
+      if (!res.ok) throw new Error('Failed to fetch messages');
+      const data = await res.json();
       setMessages(data || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -41,12 +38,11 @@ export const AdminMessages = () => {
 
   const markAsRead = async (message: Message) => {
     try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .update({ is_read: true })
-        .eq('id', message.id);
+      const res = await fetch(`http://localhost:5000/api/messages/${message.id}/read`, {
+        method: 'PUT'
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to mark as read');
       setMessages(prev =>
         prev.map(m => (m.id === message.id ? { ...m, is_read: true } : m))
       );
@@ -59,12 +55,11 @@ export const AdminMessages = () => {
     if (!confirm('Are you sure you want to delete this message?')) return;
 
     try {
-      const { error } = await supabase
-        .from('contact_submissions')
-        .delete()
-        .eq('id', id);
+      const res = await fetch(`http://localhost:5000/api/messages/${id}`, {
+        method: 'DELETE'
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error('Failed to delete message');
       toast.success('Message deleted');
       setMessages(prev => prev.filter(m => m.id !== id));
       if (selectedMessage?.id === id) {
