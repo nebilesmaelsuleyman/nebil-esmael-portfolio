@@ -49,7 +49,7 @@ export const AdminProfile = ({ userId }: AdminProfileProps) => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/profiles/${userId}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/profiles/${userId}`);
       if (!res.ok) throw new Error('Failed to fetch profile');
       const data = await res.json();
 
@@ -97,7 +97,7 @@ export const AdminProfile = ({ userId }: AdminProfileProps) => {
         user_id: userId,
       };
 
-      const res = await fetch('http://localhost:5000/api/profiles', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/profiles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData)
@@ -134,7 +134,7 @@ export const AdminProfile = ({ userId }: AdminProfileProps) => {
 
       const formData = new FormData();
       formData.append('file', file);
-      const uploadRes = await fetch('http://localhost:5000/api/upload', {
+      const uploadRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, {
         method: 'POST',
         body: formData
       });
@@ -144,7 +144,7 @@ export const AdminProfile = ({ userId }: AdminProfileProps) => {
       const publicUrl = uploadData.url;
 
       if (profile) {
-        const updateRes = await fetch('http://localhost:5000/api/profiles', {
+        const updateRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/profiles`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: userId, photo_url: publicUrl })

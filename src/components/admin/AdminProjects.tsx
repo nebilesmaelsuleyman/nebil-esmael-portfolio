@@ -62,7 +62,7 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${userId}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${userId}`);
       if (!res.ok) throw new Error('Failed to load projects');
       const data = await res.json();
       setProjects(data ?? []);
@@ -122,7 +122,7 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
   const uploadImage = async (file: File): Promise<string> => {
       const formData = new FormData();
       formData.append('file', file);
-      const uploadRes = await fetch('http://localhost:5000/api/upload', {
+      const uploadRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, {
         method: 'POST',
         body: formData
       });
@@ -184,7 +184,7 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
       };
 
       if (editingProject) {
-        const updateRes = await fetch(`http://localhost:5000/api/projects/${editingProject.id}`, {
+        const updateRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${editingProject.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(projectData)
@@ -192,7 +192,7 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
         if (!updateRes.ok) throw new Error('Failed to update project');
         toast.success('Project updated');
       } else {
-        const insertRes = await fetch('http://localhost:5000/api/projects', {
+        const insertRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ...projectData, display_order: projects.length })
@@ -213,7 +213,7 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
 
   const toggleVisibility = async (project: Project) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${project.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${project.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_visible: !project.is_visible })
@@ -231,7 +231,7 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
     if (!confirm('Are you sure you want to delete this project?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/projects/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${id}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Failed to delete project');

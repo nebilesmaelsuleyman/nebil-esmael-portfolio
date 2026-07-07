@@ -122,7 +122,7 @@ export const ProjectsSection = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/projects?is_visible=true');
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects?is_visible=true`);
         if (!res.ok) throw new Error('Failed to fetch projects');
         const data = await res.json();
 

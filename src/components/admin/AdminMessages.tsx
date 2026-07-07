@@ -24,7 +24,7 @@ export const AdminMessages = () => {
 
   const fetchMessages = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/messages');
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/messages`);
       if (!res.ok) throw new Error('Failed to fetch messages');
       const data = await res.json();
       setMessages(data || []);
@@ -38,7 +38,7 @@ export const AdminMessages = () => {
 
   const markAsRead = async (message: Message) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/messages/${message.id}/read`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/messages/${message.id}/read`, {
         method: 'PUT'
       });
 
@@ -55,7 +55,7 @@ export const AdminMessages = () => {
     if (!confirm('Are you sure you want to delete this message?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/messages/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/messages/${id}`, {
         method: 'DELETE'
       });
 

@@ -32,7 +32,7 @@ export const AdminCV = ({ userId }: AdminCVProps) => {
     }
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/cv/${userId}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cv/${userId}`);
       if (!res.ok) throw new Error('Failed to fetch CV');
       const data = await res.json();
       setCVFile(data || null);
@@ -63,7 +63,7 @@ export const AdminCV = ({ userId }: AdminCVProps) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      const uploadRes = await fetch('http://localhost:5000/api/upload', {
+      const uploadRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/upload`, {
         method: 'POST',
         body: formData
       });
@@ -71,7 +71,7 @@ export const AdminCV = ({ userId }: AdminCVProps) => {
       const uploadData = await uploadRes.json();
       const publicUrl = uploadData.url;
 
-      const saveRes = await fetch('http://localhost:5000/api/cv', {
+      const saveRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cv`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -97,7 +97,7 @@ export const AdminCV = ({ userId }: AdminCVProps) => {
     if (!confirm('Are you sure you want to delete your CV?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/cv/${cvFile.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cv/${cvFile.id}`, {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Failed to delete CV');

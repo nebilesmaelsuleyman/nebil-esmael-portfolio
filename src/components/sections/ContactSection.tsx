@@ -53,7 +53,7 @@ export const ContactSection = () => {
   useEffect(() => {
     const fetchCV = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/cv');
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cv`);
         if (res.ok) {
           const data = await res.json();
           if (data?.file_url) setCvUrl(data.file_url);
@@ -103,7 +103,7 @@ export const ContactSection = () => {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/messages', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
