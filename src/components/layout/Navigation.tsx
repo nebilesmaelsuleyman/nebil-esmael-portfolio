@@ -51,42 +51,45 @@ export const Navigation = () => {
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
-          ? 'bg-background/80 backdrop-blur-xl border-b border-border/50'
-          : 'bg-transparent'
+          ? 'bg-[#0B1115]/80 backdrop-blur-xl border-b border-white/5'
+          : 'bg-transparent pt-6'
           }`}
       >
         <div className="container mx-auto px-6 lg:px-12">
           <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <motion.button
-              onClick={() => scrollToSection('hero')}
-              className="text-xl font-display font-semibold tracking-tight text-foreground"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
+            {/* Left side empty or Logo */}
+            <div className="w-1/4">
+               {/* Logo can go here */}
+            </div>
 
-            </motion.button>
-
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-1">
+            {/* Desktop Navigation (Centered) */}
+            <div className="hidden md:flex flex-1 justify-center items-center gap-8">
               {navItems.map((item) => (
                 <motion.button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`nav-item ${activeSection === item.id ? 'active' : ''}`}
+                  className={`relative px-1 py-2 text-sm font-medium transition-colors duration-300 ${activeSection === item.id ? 'text-[#2ecc71]' : 'text-gray-300 hover:text-white'}`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   {item.label}
+                  {activeSection === item.id && (
+                    <motion.div
+                      layoutId="activeNav"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#2ecc71]"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
                 </motion.button>
               ))}
             </div>
 
-            {/* CTA Button */}
-            <div className="hidden md:flex items-center gap-4">
+            {/* CTA Button (Right) */}
+            <div className="hidden md:flex w-1/4 justify-end items-center">
               <motion.button
                 onClick={() => scrollToSection('contact')}
-                className="btn-luxury text-sm px-6 py-2.5 rounded-md"
+                className="text-sm px-6 py-2.5 rounded-lg border border-[#1e3a2e] text-[#2ecc71] bg-[#1a2228]/50 hover:bg-[#1a2228] transition-all duration-300 backdrop-blur-sm"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -97,7 +100,7 @@ export const Navigation = () => {
             {/* Mobile Menu Button */}
             <motion.button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 text-foreground"
+              className="md:hidden p-2 text-gray-300"
               whileTap={{ scale: 0.9 }}
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -114,7 +117,7 @@ export const Navigation = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-x-0 top-20 z-40 bg-background/95 backdrop-blur-xl border-b border-border md:hidden"
+            className="fixed inset-x-0 top-20 z-40 bg-[#0B1115]/95 backdrop-blur-xl border-b border-white/5 md:hidden"
           >
             <div className="container mx-auto px-6 py-6">
               <div className="flex flex-col gap-4">
@@ -125,7 +128,7 @@ export const Navigation = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className={`text-left text-lg font-medium py-2 ${activeSection === item.id ? 'text-primary' : 'text-muted-foreground'
+                    className={`text-left text-lg font-medium py-2 ${activeSection === item.id ? 'text-[#2ecc71]' : 'text-gray-400'
                       }`}
                   >
                     {item.label}
@@ -136,7 +139,7 @@ export const Navigation = () => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: navItems.length * 0.1 }}
-                  className="btn-accent text-sm px-6 py-3 rounded-md mt-4 w-full"
+                  className="text-sm px-6 py-3 rounded-lg border border-[#1e3a2e] text-[#2ecc71] bg-[#1a2228]/50 mt-4 w-full"
                 >
                   Let's Talk
                 </motion.button>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Plus, Edit2, Trash2, ExternalLink, Github, GripVertical, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -65,13 +65,50 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${userId}`);
       if (!res.ok) throw new Error('Failed to load projects');
       const data = await res.json();
-      setProjects(data ?? []);
+      // Sort projects by display_order initially
+      const sortedData = (data ?? []).sort((a: Project, b: Project) => a.display_order - b.display_order);
+      setProjects(sortedData);
     } catch (err: unknown) {
       const supabaseError = err && typeof err === 'object' && 'message' in err ? (err as { message: string }).message : null;
       console.error('Error fetching projects:', err);
       toast.error(supabaseError || 'Failed to load projects');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReorder = async (newOrder: Project[]) => {
+    setProjects(newOrder);
+    
+    // Update display_order for all projects in the new order
+    try {
+      const updates = newOrder.map((proj, index) => ({
+        id: proj.id,
+        display_order: index
+      }));
+      
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/reorder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updates })
+      });
+      
+      if (!res.ok) {
+        // If reorder endpoint doesn't exist, we fallback to updating each individually
+        await Promise.all(
+          newOrder.map((proj, index) => 
+            fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/projects/${proj.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ display_order: index })
+            })
+          )
+        );
+      }
+    } catch (error) {
+      console.error('Error saving new order:', error);
+      toast.error('Failed to save project order');
+      fetchProjects(); // Revert on failure
     }
   };
 
@@ -276,14 +313,14 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
           <p className="text-muted-foreground">No projects yet. Add your first project to get started.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <Reorder.Group axis="y" values={projects} onReorder={handleReorder} className="space-y-4">
           {projects.map((project) => (
-            <motion.div
+            <Reorder.Item
               key={project.id}
-              layout
+              value={project}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass-card p-6"
+              className="glass-card p-6 cursor-grab active:cursor-grabbing"
             >
               <div className="flex items-start gap-4">
                 <div className="text-muted-foreground cursor-grab">
@@ -358,9 +395,9 @@ export const AdminProjects = ({ userId }: AdminProjectsProps) => {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </Reorder.Item>
           ))}
-        </div>
+        </Reorder.Group>
       )}
 
       {/* Modal - portaled to body so it's not clipped by parent overflow */}
