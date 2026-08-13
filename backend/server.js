@@ -5,6 +5,7 @@ import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import sharp from 'sharp';
 import { Profile, Project, CVFile, ContactSubmission } from './models.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -35,18 +36,40 @@ mongoose.connect(MONGODB_URI)
 
 // Routes
 
-// Upload endpoint
-app.post('/api/upload', upload.single('file'), (req, res) => {
+// Upload endpoint with image compression
+app.post('/api/upload', upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
   
-  // Convert buffer to base64 Data URI
-  const b64 = Buffer.from(req.file.buffer).toString('base64');
-  const mimeType = req.file.mimetype;
-  const fileUrl = `data:${mimeType};base64,${b64}`;
-  
-  res.json({ url: fileUrl, filename: req.file.originalname });
+  try {
+    // Compress image using sharp
+    let compressedBuffer = req.file.buffer;
+    
+    if (req.file.mimetype.startsWith('image/')) {
+      compressedBuffer = await sharp(req.file.buffer)
+        .resize(1920, 1080, {
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .webp({ quality: 75, effort: 6 })
+        .toBuffer();
+    }
+    
+    // Convert to base64 Data URI
+    const b64 = compressedBuffer.toString('base64');
+    const fileUrl = `data:image/webp;base64,${b64}`;
+    
+    res.json({ 
+      url: fileUrl, 
+      filename: req.file.originalname,
+      size: compressedBuffer.length,
+      originalSize: req.file.buffer.length
+    });
+  } catch (err) {
+    console.error('Image compression error:', err);
+    res.status(500).json({ error: 'Failed to compress image' });
+  }
 });
 
 // Profiles

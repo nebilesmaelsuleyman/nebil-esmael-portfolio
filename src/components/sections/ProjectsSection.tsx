@@ -18,6 +18,9 @@ interface Project {
   gradient: string;
 }
 
+interface ImageLoadState {
+  [key: string]: 'loading' | 'loaded' | 'error';
+}
 
 const gradients = [
   'from-sapphire/20 via-transparent to-transparent',
@@ -27,7 +30,7 @@ const gradients = [
   'from-orange-500/20 via-transparent to-transparent'
 ];
 
-const ProjectCard = ({ project, index }: { project: Project; index: number }) => {
+const ProjectCard = ({ project, index, imageLoadState, onImageLoad, onImageError }: { project: Project; index: number; imageLoadState: ImageLoadState; onImageLoad: (id: string) => void; onImageError: (id: string) => void }) => {
   return (
     <div className={`absolute inset-0 flex items-center justify-center project-slide`}>
       <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient}`} />
@@ -88,11 +91,36 @@ const ProjectCard = ({ project, index }: { project: Project; index: number }) =>
           <div className={`${index % 2 === 1 ? 'lg:order-1' : ''}`}>
             <div className="relative aspect-[4/3] rounded-lg overflow-hidden glass-card">
               {project.imageUrl ? (
-                <img
-                  src={project.imageUrl}
-                  alt={project.title}
-                  className="w-full h-full object-cover"
-                />
+                <>
+                  {/* Loading Skeleton */}
+                  {imageLoadState[project.id] === 'loading' && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-secondary via-card to-secondary animate-pulse" />
+                  )}
+                  
+                  {/* Image */}
+                  <img
+                    src={project.imageUrl}
+                    alt={project.title}
+                    loading="lazy"
+                    className={`w-full h-full object-cover transition-opacity duration-300 ${
+                      imageLoadState[project.id] === 'loaded' ? 'opacity-100' : 'opacity-0'
+                    }`}
+                    onLoad={() => onImageLoad(project.id)}
+                    onError={() => onImageError(project.id)}
+                  />
+                  
+                  {/* Error State */}
+                  {imageLoadState[project.id] === 'error' && (
+                    <div className="absolute inset-0 bg-gradient-to-br from-secondary via-card to-secondary flex items-center justify-center">
+                      <div className="text-center text-muted-foreground">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full border border-border flex items-center justify-center">
+                          <ExternalLink size={24} className="text-primary" />
+                        </div>
+                        <p className="text-sm">Image unavailable</p>
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-secondary via-card to-secondary flex items-center justify-center">
                   <div className="text-center text-muted-foreground">
@@ -117,6 +145,17 @@ export const ProjectsSection = () => {
   const slidesContainerRef = useRef<HTMLDivElement>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imageLoadState, setImageLoadState] = useState<ImageLoadState>({});
+
+  // Handle image load
+  const handleImageLoad = (projectId: string) => {
+    setImageLoadState(prev => ({ ...prev, [projectId]: 'loaded' }));
+  };
+
+  // Handle image error
+  const handleImageError = (projectId: string) => {
+    setImageLoadState(prev => ({ ...prev, [projectId]: 'error' }));
+  };
 
   // Fetch projects from Supabase
   useEffect(() => {
@@ -139,6 +178,15 @@ export const ProjectsSection = () => {
             gradient: gradients[index % gradients.length]
           }));
           setProjects(mappedProjects);
+          
+          // Initialize image load state as loading
+          const initialState: ImageLoadState = {};
+          mappedProjects.forEach(p => {
+            if (p.imageUrl) {
+              initialState[p.id] = 'loading';
+            }
+          });
+          setImageLoadState(initialState);
         }
       } catch (err) {
         console.error('Failed to fetch projects:', err);
@@ -253,7 +301,14 @@ export const ProjectsSection = () => {
         </div>
 
         {projects.map((project, index) => (
-          <ProjectCard key={project.id} project={project} index={index} />
+          <ProjectCard 
+            key={project.id} 
+            project={project} 
+            index={index}
+            imageLoadState={imageLoadState}
+            onImageLoad={handleImageLoad}
+            onImageError={handleImageError}
+          />
         ))}
       </div>
     </section>
