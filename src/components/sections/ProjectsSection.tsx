@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { ExternalLink, Github } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -18,8 +18,8 @@ interface Project {
   gradient: string;
 }
 
-interface ImageLoadState {
-  [key: string]: 'loading' | 'loaded' | 'error';
+interface ImageErrorState {
+  [key: string]: boolean;
 }
 
 const gradients = [
@@ -30,7 +30,11 @@ const gradients = [
   'from-orange-500/20 via-transparent to-transparent'
 ];
 
-const ProjectCard = ({ project, index, imageLoadState, onImageLoad, onImageError }: { project: Project; index: number; imageLoadState: ImageLoadState; onImageLoad: (id: string) => void; onImageError: (id: string) => void }) => {
+const ProjectCard = memo(({ project, index, imageErrors, onImageError }: { project: Project; index: number; imageErrors: ImageErrorState; onImageError: (id: string) => void }) => {
+  const handleImageError = useCallback(() => {
+    onImageError(project.id);
+  }, [project.id, onImageError]);
+
   return (
     <div className={`absolute inset-0 flex items-center justify-center project-slide`}>
       <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient}`} />
@@ -90,37 +94,15 @@ const ProjectCard = ({ project, index, imageLoadState, onImageLoad, onImageError
           {/* Visual */}
           <div className={`${index % 2 === 1 ? 'lg:order-1' : ''}`}>
             <div className="relative aspect-[4/3] rounded-lg overflow-hidden glass-card">
-              {project.imageUrl ? (
-                <>
-                  {/* Loading Skeleton */}
-                  {imageLoadState[project.id] === 'loading' && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-secondary via-card to-secondary animate-pulse" />
-                  )}
-                  
-                  {/* Image */}
+              {project.imageUrl && !imageErrors[project.id] ? (
                   <img
                     src={project.imageUrl}
                     alt={project.title}
                     loading="lazy"
-                    className={`w-full h-full object-cover transition-opacity duration-300 ${
-                      imageLoadState[project.id] === 'loaded' ? 'opacity-100' : 'opacity-0'
-                    }`}
-                    onLoad={() => onImageLoad(project.id)}
-                    onError={() => onImageError(project.id)}
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                    onError={handleImageError}
                   />
-                  
-                  {/* Error State */}
-                  {imageLoadState[project.id] === 'error' && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-secondary via-card to-secondary flex items-center justify-center">
-                      <div className="text-center text-muted-foreground">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full border border-border flex items-center justify-center">
-                          <ExternalLink size={24} className="text-primary" />
-                        </div>
-                        <p className="text-sm">Image unavailable</p>
-                      </div>
-                    </div>
-                  )}
-                </>
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-secondary via-card to-secondary flex items-center justify-center">
                   <div className="text-center text-muted-foreground">
@@ -138,24 +120,19 @@ const ProjectCard = ({ project, index, imageLoadState, onImageLoad, onImageError
       </div>
     </div>
   );
-};
+});
 
 export const ProjectsSection = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const slidesContainerRef = useRef<HTMLDivElement>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-  const [imageLoadState, setImageLoadState] = useState<ImageLoadState>({});
-
-  // Handle image load
-  const handleImageLoad = (projectId: string) => {
-    setImageLoadState(prev => ({ ...prev, [projectId]: 'loaded' }));
-  };
+  const [imageErrors, setImageErrors] = useState<ImageErrorState>({});
 
   // Handle image error
-  const handleImageError = (projectId: string) => {
-    setImageLoadState(prev => ({ ...prev, [projectId]: 'error' }));
-  };
+  const handleImageError = useCallback((projectId: string) => {
+    setImageErrors(prev => ({ ...prev, [projectId]: true }));
+  }, []);
 
   // Fetch projects from Supabase
   useEffect(() => {
@@ -178,15 +155,6 @@ export const ProjectsSection = () => {
             gradient: gradients[index % gradients.length]
           }));
           setProjects(mappedProjects);
-          
-          // Initialize image load state as loading
-          const initialState: ImageLoadState = {};
-          mappedProjects.forEach(p => {
-            if (p.imageUrl) {
-              initialState[p.id] = 'loading';
-            }
-          });
-          setImageLoadState(initialState);
         }
       } catch (err) {
         console.error('Failed to fetch projects:', err);
@@ -305,8 +273,7 @@ export const ProjectsSection = () => {
             key={project.id} 
             project={project} 
             index={index}
-            imageLoadState={imageLoadState}
-            onImageLoad={handleImageLoad}
+            imageErrors={imageErrors}
             onImageError={handleImageError}
           />
         ))}
